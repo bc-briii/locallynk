@@ -6,7 +6,7 @@ let pendingRings = {};
 
 // API calls to Node.js/Express backend
 // Replace with your Render backend URL when deployed
-const API_BASE_URL = process.env.API_URL || 'http://localhost:3000';
+const API_BASE_URL = 'https://locallynk-api.onrender.com';
 
 async function apiCall(action, data = {}) {
     try {
