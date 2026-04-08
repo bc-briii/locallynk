@@ -9,22 +9,26 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname)));
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'LocalLynk.html'));
-});
-
-// Session configuration
+// Session must be available for API requests before routes are defined
 app.use(session({
     secret: process.env.SESSION_SECRET || 'locallynk-secret-key',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
 }));
+
+app.use(express.static(path.join(__dirname)));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'LocalLynk.html'));
+});
 
 // PostgreSQL Pool
 const pool = new Pool({
@@ -227,9 +231,11 @@ async function saveUserProfile(req, res) {
             return res.json({ success: false, error: 'Not logged in' });
         }
 
+        const locationValue = location ? JSON.stringify(location) : null;
+
         await pool.query(
-            'UPDATE users SET profile = $1, location = $2 WHERE id = $3',
-            [JSON.stringify(profile), JSON.stringify(location), userId]
+            'UPDATE users SET profile = $1, location = COALESCE($2, location) WHERE id = $3',
+            [JSON.stringify(profile), locationValue, userId]
         );
 
         res.json({ success: true });
