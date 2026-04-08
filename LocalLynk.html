@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>LocalLynk · Connect Beyond Comfort</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-wrapper" id="app">
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="page active">
+        <div class="auth-container">
+            <h2>LocalLynk</h2>
+            <div class="input-group"><input type="text" id="loginUsername" placeholder="Username"></div>
+            <div class="input-group"><input type="password" id="loginPassword" placeholder="Password"></div>
+            <button class="btn" id="loginBtn">Log In</button>
+            <button class="btn btn-outline" id="gotoRegisterBtn">Create Account</button>
+            <div id="loginError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- REGISTER PAGE -->
+    <div id="registerPage" class="page">
+        <div class="auth-container">
+            <h2>Join LocalLynk</h2>
+            <div class="input-group"><input type="text" id="regUser" placeholder="Username"></div>
+            <div class="input-group"><input type="password" id="regPass" placeholder="Password"></div>
+            <div class="input-group"><input type="password" id="regConfirm" placeholder="Confirm Password"></div>
+            <div class="input-group"><input type="email" id="regEmail" placeholder="Email"></div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="termsCheck">
+                <label>I agree to the Terms & Agreements</label>
+            </div>
+            <button class="btn" id="registerBtn">Register</button>
+            <button class="btn btn-outline" id="backToLoginBtn">Back to Login</button>
+            <div id="regError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- PROFILE COMPLETION -->
+    <div id="profilePage" class="page">
+        <div class="auth-container">
+            <h2>Tell us about you</h2>
+            <div class="input-group"><input type="text" id="profileName" placeholder="Full Name"></div>
+            <div class="input-group"><input type="number" id="profileAge" placeholder="Age"></div>
+            <div class="input-group"><input type="text" id="profileHobbies" placeholder="Hobbies"></div>
+            <div class="input-group"><textarea id="profileBio" rows="2" placeholder="Short bio"></textarea></div>
+            <div class="input-group">
+                <label style="color:#cbd5e1; font-size:0.9rem; margin-bottom:8px; display:block;">Profile Picture</label>
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <input type="file" id="profilePictureFile" accept="image/*" style="display:none;">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('profilePictureFile').click()" style="flex:1;">
+                        📷 Choose Photo
+                    </button>
+                    <div id="imagePreview" style="width:60px; height:60px; border-radius:50%; border:2px solid #6366f1; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.8rem;">
+                        No photo
+                    </div>
+                </div>
+            </div>
+            <button class="btn" id="saveProfileBtn">Launch into Orbit</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="mainPage" class="page">
+        <div class="dashboard">
+            <canvas id="satelliteCanvas"></canvas>
+            <div class="users-container" id="usersContainer"></div>
+            <div class="side-panel">
+                <h3>My Profile</h3>
+                <div id="profileSummary">Loading...</div>
+                <button id="editProfileBtn">Edit Profile</button>
+                <h3>Ring History</h3>
+                <div id="historyList" class="history-list">No rings yet</div>
+                <h3>Messages</h3>
+                <div id="messagesList" class="messages-list">No messages yet</div>
+            </div>
+            <button id="findBtn" class="find-btn">FIND</button>
+            <button id="logoutBtn" class="logout-top">Log out</button>
+        </div>
+    </div>
+</div>
+
+<script src="LocalLynk.js"></script>
+</body>
+</html>
