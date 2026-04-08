@@ -218,7 +218,7 @@ app.get('/api/messages/:userId', async (req, res) => {
 });
 
 // Update user profile
-app.post('/api/updateProfile', async (req, res) => {
+async function saveUserProfile(req, res) {
     try {
         const { profile, location } = req.body;
         const userId = req.session.userId;
@@ -237,7 +237,10 @@ app.post('/api/updateProfile', async (req, res) => {
         console.error('Update profile error:', error);
         res.json({ success: false, error: error.message });
     }
-});
+}
+
+app.post('/api/updateProfile', saveUserProfile);
+app.post('/api/saveProfile', saveUserProfile);
 
 // ============ DATABASE INITIALIZATION ============
 
