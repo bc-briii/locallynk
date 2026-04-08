@@ -235,9 +235,55 @@ app.post('/api/updateProfile', async (req, res) => {
     }
 });
 
+// ============ DATABASE INITIALIZATION ============
+
+async function initializeDatabase() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                email VARCHAR(100) NOT NULL,
+                profile JSONB,
+                location JSONB,
+                completed BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS rings (
+                id SERIAL PRIMARY KEY,
+                from_user_id INT NOT NULL,
+                to_user_id INT NOT NULL,
+                status VARCHAR(20) DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (from_user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (to_user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS messages (
+                id SERIAL PRIMARY KEY,
+                from_user_id INT NOT NULL,
+                to_user_id INT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (from_user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (to_user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+        `);
+        console.log('Database schema initialized');
+    } catch (error) {
+        console.error('Database initialization failed:', error);
+        process.exit(1);
+    }
+}
+
 // ============ START SERVER ============
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`LocalLynk server running on port ${PORT}`);
+
+initializeDatabase().then(() => {
+    app.listen(PORT, () => {
+        console.log(`LocalLynk server running on port ${PORT}`);
+    });
 });
