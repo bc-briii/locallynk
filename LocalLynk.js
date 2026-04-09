@@ -279,6 +279,7 @@ async function openChatWith(user) {
 // Ring notification data
 let lastRingCheck = 0;
 let ringsNotified = new Set();
+let skipInitialPendingRings = true;
 
 // Play ring sound
 function playRingSound() {
@@ -332,6 +333,12 @@ async function checkIncomingRings() {
         const result = await apiCall('pendingRings', {}, 'GET');
         if (!result.success || !result.rings) return;
         
+        if (skipInitialPendingRings) {
+            result.rings.forEach(ring => ringsNotified.add(`ring_${ring.id}`));
+            skipInitialPendingRings = false;
+            return;
+        }
+
         result.rings.forEach(ring => {
             const notifId = `ring_${ring.id}`;
             if (ringsNotified.has(notifId)) return;
@@ -786,16 +793,25 @@ const profilePictureFile = document.getElementById('profilePictureFile');
 if (profilePictureFile) {
     profilePictureFile.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
+        const label = document.getElementById('profilePictureLabel');
+        if (file) {
+            if (label) label.textContent = file.name;
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('profileImagePreview');
+                    if (preview) {
+                        preview.innerHTML = `<img src="${event.target.result}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                        preview.dataset.imageData = event.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
                 const preview = document.getElementById('profileImagePreview');
-                if (preview) {
-                    preview.innerHTML = `<img src="${event.target.result}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-                    preview.dataset.imageData = event.target.result;
-                }
-            };
-            reader.readAsDataURL(file);
+                if (preview) preview.innerHTML = 'Invalid file';
+            }
+        } else if (label) {
+            label.textContent = 'No file selected';
         }
     });
 }

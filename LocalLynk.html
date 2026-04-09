@@ -51,13 +51,16 @@
             <div class="input-group"><textarea id="profileBio" rows="2" placeholder="Short bio"></textarea></div>
             <div class="input-group">
                 <label style="color:#cbd5e1; font-size:0.9rem; margin-bottom:8px; display:block;">Profile Picture</label>
-                <div style="display:flex; align-items:center; gap:15px;">
+                <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
                     <input type="file" id="profilePictureFile" accept="image/*" style="display:none;">
-                    <button type="button" class="btn btn-outline" onclick="document.getElementById('profilePictureFile').click()" style="flex:1;">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('profilePictureFile').click()" style="flex:1; min-width:160px;">
                         📷 Choose Photo
                     </button>
-                    <div id="profileImagePreview" style="width:60px; height:60px; border-radius:50%; border:2px solid #6366f1; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.8rem;">
-                        No photo
+                    <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-start; width:220px;">
+                        <div id="profileImagePreview" style="width:60px; height:60px; border-radius:50%; border:2px solid #6366f1; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.8rem;">
+                            No photo
+                        </div>
+                        <span id="profilePictureLabel" style="color:#cbd5e1; font-size:0.8rem;">No file selected</span>
                     </div>
                 </div>
             </div>
