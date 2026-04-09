@@ -474,24 +474,21 @@ async function findNearbyUsers() {
             return;
         }
 
-        let containerRect = container.getBoundingClientRect();
-        let satelliteRect = document.getElementById('satelliteVisual').getBoundingClientRect();
-        let centerX = satelliteRect.left - containerRect.left + satelliteRect.width * 0.5;
-        let centerY = satelliteRect.top - containerRect.top + satelliteRect.height * 0.5;
-        let radius = Math.min(satelliteRect.width, satelliteRect.height) * 0.35;
-
         nearbyUsers.forEach((user, idx) => {
-            let angle = (idx / nearbyUsers.length) * Math.PI * 2;
-            let left = centerX + Math.cos(angle) * radius - 45;
-            let top = centerY + Math.sin(angle) * radius - 25;
+            let radius = 120 + (idx % 3) * 20;
+            let wrapper = document.createElement('div');
+            wrapper.className = 'orbit-user';
+            wrapper.style.setProperty('--orbit-duration', `${12 + idx * 1.5}s`);
+            if (idx % 2 === 0) wrapper.classList.add('reverse');
 
             let card = document.createElement('div');
             card.className = 'user-card';
-            card.style.left = left + 'px';
-            card.style.top = top + 'px';
+            card.style.top = `-${radius}px`;
+            card.style.left = '-45px';
             card.innerHTML = `<img src="${user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'"><span>${escapeHtml(user.profile?.name?.split(' ')[0] || user.username)}</span>`;
             card.onclick = (e) => { e.stopPropagation(); showProfileCard(user); };
-            container.appendChild(card);
+            wrapper.appendChild(card);
+            container.appendChild(wrapper);
         });
         showToast(`${nearbyUsers.length} user(s) within 10 meters. Click to view profile.`);
 
