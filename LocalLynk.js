@@ -195,12 +195,54 @@ function updateSidebar() {
 function openChatWith(user) {
     let threadId = [currentUser.username, user.username].sort().join('_');
     if (!messagesDB[threadId]) messagesDB[threadId] = [];
-    let msg = prompt(`Message ${user.profile.name}:`, "Hey! Would love to chat.");
-    if (!msg || msg.trim() === '') return;
-    messagesDB[threadId].push({ sender: currentUser.username, text: msg.trim(), time: Date.now() });
-    saveAll();
-    showToast(`Message sent to ${user.profile.name}`);
-    updateSidebar();
+
+    let modal = document.createElement('div');
+    modal.className = 'edit-modal message-modal';
+    modal.innerHTML = `
+        <h3>Message ${escapeHtml(user.profile.name)}</h3>
+        <div class="chat-history" id="chatHistory"></div>
+        <textarea id="chatInput" rows="4" placeholder="Type your message..."></textarea>
+        <div class="chat-actions">
+            <button class="btn" id="sendChatBtn">Send</button>
+            <button class="btn btn-outline" id="closeChatBtn">Close</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    let overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    document.body.appendChild(overlay);
+
+    let chatHistory = modal.querySelector('#chatHistory');
+    let chatInput = modal.querySelector('#chatInput');
+
+    function renderChatHistory() {
+        chatHistory.innerHTML = messagesDB[threadId].map(entry => {
+            let who = entry.sender === currentUser.username ? 'You' : escapeHtml(user.profile.name);
+            let cls = entry.sender === currentUser.username ? 'chat-line sent' : 'chat-line';
+            return `<div class="${cls}"><strong>${who}:</strong> ${escapeHtml(entry.text)}</div>`;
+        }).join('');
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function close() {
+        modal.remove();
+        overlay.remove();
+    }
+
+    modal.querySelector('#sendChatBtn').onclick = () => {
+        let msgText = chatInput.value.trim();
+        if (!msgText) return;
+        messagesDB[threadId].push({ sender: currentUser.username, text: msgText, time: Date.now() });
+        saveAll();
+        chatInput.value = '';
+        renderChatHistory();
+        showToast(`Message sent to ${user.profile.name}`);
+        updateSidebar();
+    };
+
+    modal.querySelector('#closeChatBtn').onclick = close;
+    overlay.onclick = close;
+    renderChatHistory();
 }
 
 // Ring notification data
@@ -395,25 +437,21 @@ async function findNearbyUsers() {
             return;
         }
 
-        let rect = container.parentElement?.getBoundingClientRect() || { width: window.innerWidth, height: window.innerHeight };
-        let centerX = (rect.width || window.innerWidth) * 0.58;
-        let centerY = (rect.height || window.innerHeight) * 0.45;
-
         nearbyUsers.forEach((user, idx) => {
-            let angle = (idx / nearbyUsers.length) * Math.PI * 2;
-            let radius = 130 + (idx % 3) * 40;
-            let left = centerX + Math.cos(angle) * radius - 45;
-            let top = centerY + Math.sin(angle) * (radius * 0.7) - 25;
-            left = Math.min(Math.max(left, 30), (rect.width || window.innerWidth) - 100);
-            top = Math.min(Math.max(top, 60), (rect.height || window.innerHeight) - 100);
+            let radius = 140 + (idx % 3) * 30;
+            let wrapper = document.createElement('div');
+            wrapper.className = 'orbit-user';
+            wrapper.style.setProperty('--orbit-duration', `${12 + idx * 1.7}s`);
+            if (idx % 2 === 0) wrapper.classList.add('reverse');
 
             let card = document.createElement('div');
             card.className = 'user-card';
-            card.style.left = left + 'px';
-            card.style.top = top + 'px';
+            card.style.top = `-${radius}px`;
+            card.style.left = '-45px';
             card.innerHTML = `<img src="${user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'"><span>${escapeHtml(user.profile?.name?.split(' ')[0] || user.username)}</span>`;
             card.onclick = (e) => { e.stopPropagation(); showProfileCard(user); };
-            container.appendChild(card);
+            wrapper.appendChild(card);
+            container.appendChild(wrapper);
         });
         showToast(`${nearbyUsers.length} user(s) within 10 meters. Click to view profile.`);
 
@@ -487,6 +525,7 @@ function openEditModal() {
                 picture: newPicture || currentUser.profile.picture
             };
             updateSidebar();
+            updateMyOrbitProfile();
             showToast("Profile updated");
             close();
         } else {
@@ -517,18 +556,21 @@ function initSatellite() {
         resize();
         ctx.clearRect(0, 0, width, height);
         
+        let orbitCenterX = width * 0.5 + 160;
+        let orbitCenterY = height * 0.5;
+
         ctx.beginPath();
-        ctx.arc(width * 0.5, height * 0.45, 120, 0, Math.PI * 2);
+        ctx.arc(orbitCenterX, orbitCenterY, 120, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
         ctx.lineWidth = 1.2;
         ctx.stroke();
         
         ctx.beginPath();
-        ctx.arc(width * 0.5, height * 0.45, 190, 0, Math.PI * 2);
+        ctx.arc(orbitCenterX, orbitCenterY, 190, 0, Math.PI * 2);
         ctx.stroke();
         
-        let satX = width * 0.5 + Math.cos(angle) * 160;
-        let satY = height * 0.45 + Math.sin(angle * 1.2) * 80;
+        let satX = orbitCenterX + Math.cos(angle) * 160;
+        let satY = orbitCenterY + Math.sin(angle * 1.2) * 80;
         ctx.fillStyle = '#a78bfa';
         ctx.shadowBlur = 8;
         ctx.beginPath();
@@ -556,6 +598,13 @@ function goToMain() {
     };
     document.getElementById('logoutBtn').onclick = () => { currentUser = null; stopLocationTracking(); stopNearbyRefresh(); location.reload(); };
     document.getElementById('editProfileBtn').onclick = openEditModal;
+    updateMyOrbitProfile();
+}
+
+function updateMyOrbitProfile() {
+    const img = document.getElementById('myProfileOrbitImg');
+    if (!img || !currentUser) return;
+    img.src = currentUser.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
 }
 
 // ============ AUTHENTICATION EVENT HANDLERS ============
