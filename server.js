@@ -60,8 +60,8 @@ app.post('/api/register', async (req, res) => {
         const hashedPassword = hashPassword(password);
 
         const result = await pool.query(
-            'INSERT INTO users (username, password, email, profile, completed) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, profile, completed',
-            [username, hashedPassword, email, JSON.stringify(profile), true]
+            'INSERT INTO users (username, password, email, profile, completed, active, last_seen) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, username, email, profile, completed',
+            [username, hashedPassword, email, JSON.stringify(profile), true, true]
         );
 
         req.session.userId = result.rows[0].id;
@@ -91,6 +91,7 @@ app.post('/api/login', async (req, res) => {
             return res.json({ success: false, error: 'Invalid password' });
         }
 
+        await pool.query('UPDATE users SET active = true, last_seen = NOW() WHERE id = $1', [user.id]);
         req.session.userId = user.id;
         res.json({ 
             success: true, 
@@ -118,9 +119,17 @@ app.get('/api/currentUser', (req, res) => {
 });
 
 // Logout
-app.post('/api/logout', (req, res) => {
-    req.session.destroy();
-    res.json({ success: true });
+app.post('/api/logout', async (req, res) => {
+    try {
+        if (req.session.userId) {
+            await pool.query('UPDATE users SET active = false WHERE id = $1', [req.session.userId]);
+        }
+        req.session.destroy();
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.json({ success: false, error: error.message });
+    }
 });
 
 // Get all users (for ring feature)
@@ -151,7 +160,7 @@ app.get('/api/nearbyUsers', async (req, res) => {
 
         // Get all users except current user
         const result = await pool.query(
-            'SELECT id, username, profile, location, completed FROM users WHERE id != $1 AND completed = true',
+            "SELECT id, username, profile, location, completed FROM users WHERE id != $1 AND completed = true AND active = true AND last_seen > NOW() - INTERVAL '15 seconds'",
             [req.session.userId || 0]
         );
 
@@ -288,7 +297,7 @@ async function saveUserProfile(req, res) {
         const locationValue = location ? JSON.stringify(location) : null;
 
         await pool.query(
-            'UPDATE users SET profile = $1, location = COALESCE($2, location) WHERE id = $3',
+            'UPDATE users SET profile = $1, location = COALESCE($2, location), active = true, last_seen = NOW() WHERE id = $3',
             [JSON.stringify(profile), locationValue, userId]
         );
 
@@ -315,6 +324,8 @@ async function initializeDatabase() {
                 profile JSONB,
                 location JSONB,
                 completed BOOLEAN DEFAULT FALSE,
+                active BOOLEAN DEFAULT FALSE,
+                last_seen TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -338,6 +349,7 @@ async function initializeDatabase() {
                 FOREIGN KEY (to_user_id) REFERENCES users(id) ON DELETE CASCADE
             );
         `);
+        await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT FALSE; ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP;");
         console.log('Database schema initialized');
     } catch (error) {
         console.error('Database initialization failed:', error);

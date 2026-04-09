@@ -30,6 +30,9 @@ async function apiCall(action, data = {}, method = 'POST') {
 }
 let currentUser = null;
 let userLocation = null;
+let watchId = null;
+let locationTrackingInterval = null;
+let nearbyRefreshInterval = null;
 
 function saveAll() {
     localStorage.setItem('locallynk_users', JSON.stringify(usersDB));
@@ -40,41 +43,101 @@ function saveAll() {
 
 // Get user's location
 async function getUserLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            async function(position) {
-                userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-                console.log('Location found:', userLocation);
-                if (currentUser) {
-                    currentUser.location = userLocation;
-                    // Save location to database
-                    try {
-                        await apiCall('updateProfile', { 
-                            profile: currentUser.profile,
-                            location: userLocation 
-                        });
-                    } catch (error) {
-                        console.log('Failed to save location to database:', error);
-                    }
-                    saveAll();
-                }
-            },
-            function(error) {
-                console.log('Location access denied:', error);
-                // Use default location for testing
-                userLocation = { lat: 40.7128, lng: -74.0060 }; // New York
-                if (currentUser) {
-                    currentUser.location = userLocation;
-                    saveAll();
-                }
+    if (!navigator.geolocation) {
+        showToast('Geolocation not supported');
+        return null;
+    }
+
+    try {
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: 30000
+            });
+        });
+
+        userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+        };
+        console.log('Location found:', userLocation);
+
+        if (currentUser) {
+            currentUser.location = userLocation;
+            try {
+                await apiCall('updateProfile', {
+                    profile: currentUser.profile,
+                    location: userLocation
+                });
+            } catch (error) {
+                console.log('Failed to save location to database:', error);
             }
-        );
-    } else {
-        console.log('Geolocation not supported');
-        userLocation = { lat: 40.7128, lng: -74.0060 }; // Default
+            saveAll();
+        }
+
+        return userLocation;
+    } catch (error) {
+        console.log('Location access denied:', error);
+        showToast('Location access failed. Please enable location services.');
+        return null;
+    }
+}
+
+function startLocationTracking() {
+    if (!navigator.geolocation || watchId !== null) return;
+
+    watchId = navigator.geolocation.watchPosition(async function(position) {
+        userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+        };
+        if (currentUser) {
+            currentUser.location = userLocation;
+            saveAll();
+            try {
+                await apiCall('updateProfile', {
+                    profile: currentUser.profile,
+                    location: userLocation
+                });
+            } catch (error) {
+                console.log('Failed to update live location:', error);
+            }
+        }
+    }, function(error) {
+        console.log('Location watch error:', error);
+    }, {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 10000
+    });
+
+    locationTrackingInterval = setInterval(async () => {
+        if (!currentUser) return;
+        await getUserLocation();
+    }, 5000);
+}
+
+function stopLocationTracking() {
+    if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
+    if (locationTrackingInterval !== null) {
+        clearInterval(locationTrackingInterval);
+        locationTrackingInterval = null;
+    }
+}
+
+function startNearbyRefresh() {
+    if (nearbyRefreshInterval !== null) return;
+    nearbyRefreshInterval = setInterval(findNearbyUsers, 5000);
+}
+
+function stopNearbyRefresh() {
+    if (nearbyRefreshInterval !== null) {
+        clearInterval(nearbyRefreshInterval);
+        nearbyRefreshInterval = null;
     }
 }
 
@@ -245,78 +308,42 @@ async function findNearbyUsers() {
         showToast('Please log in first');
         return;
     }
-    
+
     showToast('Getting your location...');
-    
-    // Update current location first
-    if (navigator.geolocation) {
-        try {
-            const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: false, // Changed to false for better mobile compatibility
-                    timeout: 10000, // Increased timeout
-                    maximumAge: 30000 // Allow cached location up to 30 seconds old
-                });
-            });
-            userLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            };
-            
-            console.log('Location found:', userLocation);
-            
-            // Update location in database
-            const updateResult = await apiCall('updateProfile', { 
-                profile: currentUser.profile,
-                location: userLocation 
-            });
-            
-            if (!updateResult.success) {
-                console.log('Location update failed, but continuing...');
-            }
-            
-        } catch (error) {
-            console.log('Location access failed:', error);
-            showToast('Location access failed. Please enable location services and try again.');
-            return;
-        }
-    } else {
-        showToast('Geolocation not supported on this device');
-        return;
-    }
-    
+    const location = await getUserLocation();
+    if (!location) return;
+
     showToast('Finding nearby users...');
-    
-    // Get nearby users from API
+
     try {
-        const result = await apiCall('nearbyUsers', { 
-            lat: userLocation.lat, 
+        const result = await apiCall('nearbyUsers', {
+            lat: userLocation.lat,
             lng: userLocation.lng,
-            radius: 0.01 // Temporarily increased to 10 meters for testing
+            radius: 0.01
         }, 'GET');
-        
+
         console.log('Nearby users API result:', result);
-        
+
         if (!result.success) {
             console.error('API call failed:', result);
             showToast('Failed to find nearby users: ' + (result.error || 'Unknown error'));
             return;
         }
-        
+
         let nearbyUsers = result.users || [];
         let container = document.getElementById('usersContainer');
         container.innerHTML = '';
-        
+
         if (nearbyUsers.length === 0) {
             container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:35%; background:#0f172a; padding:8px 20px; border-radius:30px; text-align:center;">No users nearby<br><small>(within 10 meters)</small></div>';
             showToast('No users found within 10 meters');
             return;
         }
-        
+
         let rect = container.parentElement?.getBoundingClientRect() || { width: window.innerWidth, height: window.innerHeight };
         let centerX = (rect.width || window.innerWidth) * 0.58;
         let centerY = (rect.height || window.innerHeight) * 0.45;
-        
+
         nearbyUsers.forEach((user, idx) => {
             let angle = (idx / nearbyUsers.length) * Math.PI * 2;
             let radius = 130 + (idx % 3) * 40;
@@ -324,7 +351,7 @@ async function findNearbyUsers() {
             let top = centerY + Math.sin(angle) * (radius * 0.7) - 25;
             left = Math.min(Math.max(left, 30), (rect.width || window.innerWidth) - 100);
             top = Math.min(Math.max(top, 60), (rect.height || window.innerHeight) - 100);
-            
+
             let card = document.createElement('div');
             card.className = 'user-card';
             card.style.left = left + 'px';
@@ -334,7 +361,7 @@ async function findNearbyUsers() {
             container.appendChild(card);
         });
         showToast(`${nearbyUsers.length} user(s) within 10 meters. Click to view profile.`);
-        
+
     } catch (error) {
         console.error('Find nearby users error:', error);
         showToast('Network error. Please check your connection and try again.');
@@ -464,12 +491,15 @@ function goToMain() {
     document.getElementById('mainPage').classList.add('active');
     initSatellite();
     updateSidebar();
-    getUserLocation(); // Get location when entering main dashboard
+    startLocationTracking();
     setInterval(() => { if (currentUser) checkIncomingRings(); }, 4000);
     checkIncomingRings();
     
-    document.getElementById('findBtn').onclick = findNearbyUsers;
-    document.getElementById('logoutBtn').onclick = () => { currentUser = null; location.reload(); };
+    document.getElementById('findBtn').onclick = () => {
+        findNearbyUsers();
+        startNearbyRefresh();
+    };
+    document.getElementById('logoutBtn').onclick = () => { currentUser = null; stopLocationTracking(); stopNearbyRefresh(); location.reload(); };
     document.getElementById('editProfileBtn').onclick = openEditModal;
 }
 

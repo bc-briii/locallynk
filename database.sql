@@ -10,6 +10,8 @@ CREATE TABLE users (
     profile JSONB,
     location JSONB,
     completed BOOLEAN DEFAULT FALSE,
+    active BOOLEAN DEFAULT FALSE,
+    last_seen TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
