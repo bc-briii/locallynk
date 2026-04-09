@@ -137,6 +137,51 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
+// Get nearby users within specified radius
+app.get('/api/nearbyUsers', async (req, res) => {
+    try {
+        const { lat, lng, radius } = req.query;
+        const userLat = parseFloat(lat);
+        const userLng = parseFloat(lng);
+        const searchRadius = parseFloat(radius) || 0.001; // Default 1 meter
+
+        if (!userLat || !userLng) {
+            return res.json({ success: false, error: 'Latitude and longitude required' });
+        }
+
+        // Get all users except current user
+        const result = await pool.query(
+            'SELECT id, username, profile, location, completed FROM users WHERE id != $1 AND completed = true',
+            [req.session.userId || 0]
+        );
+
+        // Filter users by distance
+        const nearbyUsers = result.rows.filter(user => {
+            if (!user.location) return false;
+            
+            const userLoc = typeof user.location === 'string' ? JSON.parse(user.location) : user.location;
+            if (!userLoc.lat || !userLoc.lng) return false;
+            
+            // Calculate distance using Haversine formula
+            const R = 6371; // Earth's radius in km
+            const dLat = (userLoc.lat - userLat) * Math.PI / 180;
+            const dLon = (userLoc.lng - userLng) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(userLat * Math.PI / 180) * Math.cos(userLoc.lat * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c; // Distance in km
+            
+            return distance <= searchRadius;
+        });
+
+        res.json({ success: true, users: nearbyUsers });
+    } catch (error) {
+        console.error('Get nearby users error:', error);
+        res.json({ success: false, error: error.message });
+    }
+});
+
 // Send ring (connection request)
 app.post('/api/sendRing', async (req, res) => {
     try {

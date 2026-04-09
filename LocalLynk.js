@@ -36,10 +36,10 @@ function saveAll() {
 }
 
 // Get user's location
-function getUserLocation() {
+async function getUserLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            function(position) {
+            async function(position) {
                 userLocation = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
@@ -47,6 +47,15 @@ function getUserLocation() {
                 console.log('Location found:', userLocation);
                 if (currentUser) {
                     currentUser.location = userLocation;
+                    // Save location to database
+                    try {
+                        await apiCall('updateProfile', { 
+                            profile: currentUser.profile,
+                            location: userLocation 
+                        });
+                    } catch (error) {
+                        console.log('Failed to save location to database:', error);
+                    }
                     saveAll();
                 }
             },
@@ -228,28 +237,59 @@ function showProfileCard(user) {
     overlay.onclick = close;
 }
 
-function findNearbyUsers() {
+async function findNearbyUsers() {
     if (!currentUser) return;
     
-    // Get user location first
-    getUserLocation();
+    // Update current location first
+    if (navigator.geolocation) {
+        try {
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
+            });
+            userLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+            
+            // Update location in database
+            await apiCall('updateProfile', { 
+                profile: currentUser.profile,
+                location: userLocation 
+            });
+            
+            console.log('Location updated:', userLocation);
+        } catch (error) {
+            console.log('Location access failed:', error);
+            showToast('Location access needed to find nearby users');
+            return;
+        }
+    } else {
+        showToast('Geolocation not supported');
+        return;
+    }
     
-    let others = usersDB.filter(u => u.username !== currentUser.username && u.completed === true);
+    // Get nearby users from API
+    const result = await apiCall('nearbyUsers', { 
+        lat: userLocation.lat, 
+        lng: userLocation.lng,
+        radius: 0.001 // 1 meter radius
+    });
+    
+    if (!result.success) {
+        showToast('Failed to find nearby users');
+        return;
+    }
+    
+    let nearbyUsers = result.users;
     let container = document.getElementById('usersContainer');
     container.innerHTML = '';
     
-    // Filter by proximity (within 100km for demo)
-    let nearbyUsers = others.filter(user => {
-        if (!user.location) return true; // Show all for now
-        if (!userLocation) return true;
-        
-        // Calculate distance (simplified)
-        let distance = calculateDistance(userLocation.lat, userLocation.lng, user.location.lat, user.location.lng);
-        return distance <= 100; // 100km radius
-    });
-    
     if (nearbyUsers.length === 0) {
-        container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:40%; background:#0f172a; padding:8px 20px; border-radius:30px;">No users nearby</div>';
+        container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:40%; background:#0f172a; padding:8px 20px; border-radius:30px;">No users nearby (within 1 meter)</div>';
         return;
     }
     
@@ -273,7 +313,7 @@ function findNearbyUsers() {
         card.onclick = (e) => { e.stopPropagation(); showProfileCard(user); };
         container.appendChild(card);
     });
-    showToast(`${nearbyUsers.length} user(s) nearby. Click to view profile.`);
+    showToast(`${nearbyUsers.length} user(s) within 1 meter. Click to view profile.`);
 }
 
 // Calculate distance between two coordinates (Haversine formula)
@@ -399,6 +439,7 @@ function goToMain() {
     document.getElementById('mainPage').classList.add('active');
     initSatellite();
     updateSidebar();
+    getUserLocation(); // Get location when entering main dashboard
     setInterval(() => { if (currentUser) checkIncomingRings(); }, 4000);
     checkIncomingRings();
     
