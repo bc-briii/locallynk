@@ -8,14 +8,17 @@ let pendingRings = {};
 // Replace with your Render backend URL when deployed
 const API_BASE_URL = 'https://locallynk-api.onrender.com';
 
-async function apiCall(action, data = {}) {
+async function apiCall(action, data = {}, method = 'POST') {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/${action}`, {
-            method: 'POST',
+        const isGet = method === 'GET';
+        const url = isGet ? `${API_BASE_URL}/api/${action}?${new URLSearchParams(data)}` : `${API_BASE_URL}/api/${action}`;
+        
+        const response = await fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: isGet ? undefined : JSON.stringify(data),
             credentials: 'include' // Include session cookies
         });
         return await response.json();
@@ -238,16 +241,21 @@ function showProfileCard(user) {
 }
 
 async function findNearbyUsers() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        showToast('Please log in first');
+        return;
+    }
+    
+    showToast('Getting your location...');
     
     // Update current location first
     if (navigator.geolocation) {
         try {
             const position = await new Promise((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
+                    enableHighAccuracy: false, // Changed to false for better mobile compatibility
+                    timeout: 10000, // Increased timeout
+                    maximumAge: 30000 // Allow cached location up to 30 seconds old
                 });
             });
             userLocation = {
@@ -255,65 +263,80 @@ async function findNearbyUsers() {
                 lng: position.coords.longitude
             };
             
+            console.log('Location found:', userLocation);
+            
             // Update location in database
-            await apiCall('updateProfile', { 
+            const updateResult = await apiCall('updateProfile', { 
                 profile: currentUser.profile,
                 location: userLocation 
             });
             
-            console.log('Location updated:', userLocation);
+            if (!updateResult.success) {
+                console.log('Location update failed, but continuing...');
+            }
+            
         } catch (error) {
             console.log('Location access failed:', error);
-            showToast('Location access needed to find nearby users');
+            showToast('Location access failed. Please enable location services and try again.');
             return;
         }
     } else {
-        showToast('Geolocation not supported');
+        showToast('Geolocation not supported on this device');
         return;
     }
+    
+    showToast('Finding nearby users...');
     
     // Get nearby users from API
-    const result = await apiCall('nearbyUsers', { 
-        lat: userLocation.lat, 
-        lng: userLocation.lng,
-        radius: 0.001 // 1 meter radius
-    });
-    
-    if (!result.success) {
-        showToast('Failed to find nearby users');
-        return;
-    }
-    
-    let nearbyUsers = result.users;
-    let container = document.getElementById('usersContainer');
-    container.innerHTML = '';
-    
-    if (nearbyUsers.length === 0) {
-        container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:40%; background:#0f172a; padding:8px 20px; border-radius:30px;">No users nearby (within 1 meter)</div>';
-        return;
-    }
-    
-    let rect = container.parentElement?.getBoundingClientRect() || { width: window.innerWidth, height: window.innerHeight };
-    let centerX = (rect.width || window.innerWidth) * 0.58;
-    let centerY = (rect.height || window.innerHeight) * 0.45;
-    
-    nearbyUsers.forEach((user, idx) => {
-        let angle = (idx / nearbyUsers.length) * Math.PI * 2;
-        let radius = 130 + (idx % 3) * 40;
-        let left = centerX + Math.cos(angle) * radius - 45;
-        let top = centerY + Math.sin(angle) * (radius * 0.7) - 25;
-        left = Math.min(Math.max(left, 30), (rect.width || window.innerWidth) - 100);
-        top = Math.min(Math.max(top, 60), (rect.height || window.innerHeight) - 100);
+    try {
+        const result = await apiCall('nearbyUsers', { 
+            lat: userLocation.lat, 
+            lng: userLocation.lng,
+            radius: 0.001 // 1 meter radius
+        }, 'GET');
         
-        let card = document.createElement('div');
-        card.className = 'user-card';
-        card.style.left = left + 'px';
-        card.style.top = top + 'px';
-        card.innerHTML = `<img src="${user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'"><span>${escapeHtml(user.profile?.name?.split(' ')[0] || user.username)}</span>`;
-        card.onclick = (e) => { e.stopPropagation(); showProfileCard(user); };
-        container.appendChild(card);
-    });
-    showToast(`${nearbyUsers.length} user(s) within 1 meter. Click to view profile.`);
+        if (!result.success) {
+            console.error('API call failed:', result);
+            showToast('Failed to find nearby users: ' + (result.error || 'Unknown error'));
+            return;
+        }
+        
+        let nearbyUsers = result.users || [];
+        let container = document.getElementById('usersContainer');
+        container.innerHTML = '';
+        
+        if (nearbyUsers.length === 0) {
+            container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:35%; background:#0f172a; padding:8px 20px; border-radius:30px; text-align:center;">No users nearby<br><small>(within 1 meter)</small></div>';
+            showToast('No users found within 1 meter');
+            return;
+        }
+        
+        let rect = container.parentElement?.getBoundingClientRect() || { width: window.innerWidth, height: window.innerHeight };
+        let centerX = (rect.width || window.innerWidth) * 0.58;
+        let centerY = (rect.height || window.innerHeight) * 0.45;
+        
+        nearbyUsers.forEach((user, idx) => {
+            let angle = (idx / nearbyUsers.length) * Math.PI * 2;
+            let radius = 130 + (idx % 3) * 40;
+            let left = centerX + Math.cos(angle) * radius - 45;
+            let top = centerY + Math.sin(angle) * (radius * 0.7) - 25;
+            left = Math.min(Math.max(left, 30), (rect.width || window.innerWidth) - 100);
+            top = Math.min(Math.max(top, 60), (rect.height || window.innerHeight) - 100);
+            
+            let card = document.createElement('div');
+            card.className = 'user-card';
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+            card.innerHTML = `<img src="${user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'"><span>${escapeHtml(user.profile?.name?.split(' ')[0] || user.username)}</span>`;
+            card.onclick = (e) => { e.stopPropagation(); showProfileCard(user); };
+            container.appendChild(card);
+        });
+        showToast(`${nearbyUsers.length} user(s) within 1 meter. Click to view profile.`);
+        
+    } catch (error) {
+        console.error('Find nearby users error:', error);
+        showToast('Network error. Please check your connection and try again.');
+    }
 }
 
 // Calculate distance between two coordinates (Haversine formula)
