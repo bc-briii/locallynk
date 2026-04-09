@@ -292,7 +292,7 @@ async function findNearbyUsers() {
         const result = await apiCall('nearbyUsers', { 
             lat: userLocation.lat, 
             lng: userLocation.lng,
-            radius: 0.001 // 1 meter radius
+            radius: 0.01 // Temporarily increased to 10 meters for testing
         }, 'GET');
         
         if (!result.success) {
@@ -306,8 +306,8 @@ async function findNearbyUsers() {
         container.innerHTML = '';
         
         if (nearbyUsers.length === 0) {
-            container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:35%; background:#0f172a; padding:8px 20px; border-radius:30px; text-align:center;">No users nearby<br><small>(within 1 meter)</small></div>';
-            showToast('No users found within 1 meter');
+            container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:35%; background:#0f172a; padding:8px 20px; border-radius:30px; text-align:center;">No users nearby<br><small>(within 10 meters)</small></div>';
+            showToast('No users found within 10 meters');
             return;
         }
         
@@ -331,7 +331,7 @@ async function findNearbyUsers() {
             card.onclick = (e) => { e.stopPropagation(); showProfileCard(user); };
             container.appendChild(card);
         });
-        showToast(`${nearbyUsers.length} user(s) within 1 meter. Click to view profile.`);
+        showToast(`${nearbyUsers.length} user(s) within 10 meters. Click to view profile.`);
         
     } catch (error) {
         console.error('Find nearby users error:', error);
