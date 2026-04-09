@@ -51,17 +51,17 @@ function verifyPassword(password, hash) {
 // Register
 app.post('/api/register', async (req, res) => {
     try {
-        const { username, password, email } = req.body;
+        const { username, password, email, profile } = req.body;
 
-        if (!username || !password || !email) {
+        if (!username || !password || !email || !profile) {
             return res.json({ success: false, error: 'Missing required fields' });
         }
 
         const hashedPassword = hashPassword(password);
 
         const result = await pool.query(
-            'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING id, username, email',
-            [username, hashedPassword, email]
+            'INSERT INTO users (username, password, email, profile, completed) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, profile, completed',
+            [username, hashedPassword, email, JSON.stringify(profile), true]
         );
 
         req.session.userId = result.rows[0].id;
@@ -78,7 +78,7 @@ app.post('/api/login', async (req, res) => {
         const { username, password } = req.body;
 
         const result = await pool.query(
-            'SELECT id, username, email, password FROM users WHERE username = $1',
+            'SELECT id, username, email, password, profile, completed FROM users WHERE username = $1',
             [username]
         );
 
@@ -92,7 +92,16 @@ app.post('/api/login', async (req, res) => {
         }
 
         req.session.userId = user.id;
-        res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
+        res.json({ 
+            success: true, 
+            user: { 
+                id: user.id, 
+                username: user.username, 
+                email: user.email,
+                profile: user.profile,
+                completed: user.completed
+            } 
+        });
     } catch (error) {
         console.error('Login error:', error);
         res.json({ success: false, error: error.message });

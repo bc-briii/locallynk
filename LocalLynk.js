@@ -308,18 +308,43 @@ function openEditModal() {
     
     let close = () => { modal.remove(); overlay.remove(); };
     
-    document.getElementById('saveEditBtn').onclick = () => {
-        currentUser.profile.name = document.getElementById('editName').value.trim() || currentUser.profile.name;
-        currentUser.profile.age = parseInt(document.getElementById('editAge').value) || currentUser.profile.age;
-        currentUser.profile.hobbies = document.getElementById('editHobbies').value.trim() || currentUser.profile.hobbies;
-        currentUser.profile.bio = document.getElementById('editBio').value.trim() || currentUser.profile.bio;
-        currentUser.profile.picture = document.getElementById('editPic').value.trim() || currentUser.profile.picture;
-        let idx = usersDB.findIndex(u => u.username === currentUser.username);
-        if (idx !== -1) usersDB[idx] = currentUser;
-        saveAll();
-        updateSidebar();
-        showToast("Profile updated");
-        close();
+    document.getElementById('saveEditBtn').onclick = async () => {
+        let newName = document.getElementById('editName').value.trim();
+        let newAge = parseInt(document.getElementById('editAge').value);
+        let newHobbies = document.getElementById('editHobbies').value.trim();
+        let newBio = document.getElementById('editBio').value.trim();
+        let newPicture = document.getElementById('editPic').value.trim();
+        
+        if (!newName || !newAge || !newHobbies) {
+            alert('Please fill name, age and hobbies');
+            return;
+        }
+        
+        // Save to API
+        const result = await apiCall('updateProfile', {
+            profile: {
+                name: newName,
+                age: newAge,
+                hobbies: newHobbies,
+                bio: newBio || 'Ready to connect!',
+                picture: newPicture || currentUser.profile.picture
+            }
+        });
+        
+        if (result.success) {
+            currentUser.profile = {
+                name: newName,
+                age: newAge,
+                hobbies: newHobbies,
+                bio: newBio || 'Ready to connect!',
+                picture: newPicture || currentUser.profile.picture
+            };
+            updateSidebar();
+            showToast("Profile updated");
+            close();
+        } else {
+            alert('Profile update failed: ' + (result.error || 'Unknown error'));
+        }
     };
     document.getElementById('cancelEditBtn').onclick = close;
     overlay.onclick = close;
@@ -392,12 +417,7 @@ document.getElementById('loginBtn').onclick = async function() {
     
     if (result.success) {
         currentUser = result.user;
-        if (!currentUser.completed) {
-            document.getElementById('loginPage').classList.remove('active');
-            document.getElementById('profilePage').classList.add('active');
-        } else {
-            goToMain();
-        }
+        goToMain();
         return;
     }
     
@@ -421,9 +441,13 @@ document.getElementById('registerBtn').onclick = async function() {
     let p = document.getElementById('regPass').value;
     let c = document.getElementById('regConfirm').value;
     let e = document.getElementById('regEmail').value.trim();
+    let name = document.getElementById('regName').value.trim();
+    let age = parseInt(document.getElementById('regAge').value);
+    let hobbies = document.getElementById('regHobbies').value.trim();
+    let bio = document.getElementById('regBio').value.trim();
     let terms = document.getElementById('termsCheck').checked;
     
-    if (!u || !p || !c || !e) {
+    if (!u || !p || !c || !e || !name || !age || !hobbies) {
         document.getElementById('regError').innerText = 'All fields required';
         return;
     }
@@ -436,8 +460,23 @@ document.getElementById('registerBtn').onclick = async function() {
         return;
     }
     
+    // Get uploaded image or use default
+    const preview = document.getElementById('regImagePreview');
+    const picture = preview.dataset.imageData || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    
     // ONLY use PHP API - no fallback
-    const result = await apiCall('register', { username: u, password: p, email: e });
+    const result = await apiCall('register', { 
+        username: u, 
+        password: p, 
+        email: e,
+        profile: {
+            name: name,
+            age: age,
+            hobbies: hobbies,
+            bio: bio || 'Ready to connect!',
+            picture: picture
+        }
+    });
     
     if (result.success) {
         let newUser = { 
@@ -445,12 +484,18 @@ document.getElementById('registerBtn').onclick = async function() {
             username: u, 
             password: p, 
             email: e, 
-            completed: false, 
-            profile: null 
+            completed: true, 
+            profile: {
+                name: name,
+                age: age,
+                hobbies: hobbies,
+                bio: bio || 'Ready to connect!',
+                picture: picture
+            }
         };
         currentUser = newUser;
         document.getElementById('registerPage').classList.remove('active');
-        document.getElementById('profilePage').classList.add('active');
+        goToMain();
         return;
     }
     
@@ -463,54 +508,15 @@ document.getElementById('registerBtn').onclick = async function() {
     document.getElementById('regError').innerText = result.error || 'Registration failed. Please try again.';
 };
 
-document.getElementById('profilePictureFile').addEventListener('change', function(e) {
+document.getElementById('regProfilePictureFile').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const preview = document.getElementById('imagePreview');
+            const preview = document.getElementById('regImagePreview');
             preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
             preview.dataset.imageData = e.target.result;
         };
         reader.readAsDataURL(file);
     }
 });
-
-document.getElementById('saveProfileBtn').onclick = async function() {
-    let name = document.getElementById('profileName').value.trim();
-    let age = parseInt(document.getElementById('profileAge').value);
-    let hobbies = document.getElementById('profileHobbies').value.trim();
-    let bio = document.getElementById('profileBio').value.trim();
-    
-    if (!name || !age || !hobbies) {
-        alert('Please fill name, age and hobbies');
-        return;
-    }
-    
-    // Get uploaded image or use default
-    const preview = document.getElementById('imagePreview');
-    const picture = preview.dataset.imageData || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-    
-    // Save to API
-    const result = await apiCall('saveProfile', {
-        name: name,
-        age: age,
-        hobbies: hobbies,
-        bio: bio || 'Ready to connect!',
-        picture: picture
-    });
-    
-    if (result.success) {
-        currentUser.profile = {
-            name: name,
-            age: age,
-            hobbies: hobbies,
-            bio: bio || 'Ready to connect!',
-            picture: picture
-        };
-        currentUser.completed = true;
-        goToMain();
-    } else {
-        alert('Profile save failed: ' + (result.error || 'Unknown error'));
-    }
-};

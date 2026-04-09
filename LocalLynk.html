@@ -29,37 +29,29 @@
             <div class="input-group"><input type="password" id="regPass" placeholder="Password"></div>
             <div class="input-group"><input type="password" id="regConfirm" placeholder="Confirm Password"></div>
             <div class="input-group"><input type="email" id="regEmail" placeholder="Email"></div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="termsCheck">
-                <label>I agree to the Terms & Agreements</label>
-            </div>
-            <button class="btn" id="registerBtn">Register</button>
-            <button class="btn btn-outline" id="backToLoginBtn">Back to Login</button>
-            <div id="regError" class="error-msg"></div>
-        </div>
-    </div>
-
-    <!-- PROFILE COMPLETION -->
-    <div id="profilePage" class="page">
-        <div class="auth-container">
-            <h2>Tell us about you</h2>
-            <div class="input-group"><input type="text" id="profileName" placeholder="Full Name"></div>
-            <div class="input-group"><input type="number" id="profileAge" placeholder="Age"></div>
-            <div class="input-group"><input type="text" id="profileHobbies" placeholder="Hobbies"></div>
-            <div class="input-group"><textarea id="profileBio" rows="2" placeholder="Short bio"></textarea></div>
+            <div class="input-group"><input type="text" id="regName" placeholder="Full Name"></div>
+            <div class="input-group"><input type="number" id="regAge" placeholder="Age"></div>
+            <div class="input-group"><input type="text" id="regHobbies" placeholder="Hobbies"></div>
+            <div class="input-group"><textarea id="regBio" rows="2" placeholder="Short bio"></textarea></div>
             <div class="input-group">
                 <label style="color:#cbd5e1; font-size:0.9rem; margin-bottom:8px; display:block;">Profile Picture</label>
                 <div style="display:flex; align-items:center; gap:15px;">
-                    <input type="file" id="profilePictureFile" accept="image/*" style="display:none;">
-                    <button type="button" class="btn btn-outline" onclick="document.getElementById('profilePictureFile').click()" style="flex:1;">
+                    <input type="file" id="regProfilePictureFile" accept="image/*" style="display:none;">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('regProfilePictureFile').click()" style="flex:1;">
                         📷 Choose Photo
                     </button>
-                    <div id="imagePreview" style="width:60px; height:60px; border-radius:50%; border:2px solid #6366f1; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.8rem;">
+                    <div id="regImagePreview" style="width:60px; height:60px; border-radius:50%; border:2px solid #6366f1; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.8rem;">
                         No photo
                     </div>
                 </div>
             </div>
-            <button class="btn" id="saveProfileBtn">Launch into Orbit</button>
+            <div class="checkbox-group">
+                <input type="checkbox" id="termsCheck">
+                <label>I agree to the Terms & Agreements</label>
+            </div>
+            <button class="btn" id="registerBtn">Create Account</button>
+            <button class="btn btn-outline" id="backToLoginBtn">Back to Login</button>
+            <div id="regError" class="error-msg"></div>
         </div>
     </div>
 
