@@ -467,21 +467,22 @@ async function findNearbyUsers() {
             return;
         }
 
+        let centerX = window.innerWidth * 0.5 + 160;
+        let centerY = window.innerHeight * 0.5;
+        let radius = 180;
+
         nearbyUsers.forEach((user, idx) => {
-            let radius = 140 + (idx % 3) * 30;
-            let wrapper = document.createElement('div');
-            wrapper.className = 'orbit-user';
-            wrapper.style.setProperty('--orbit-duration', `${12 + idx * 1.7}s`);
-            if (idx % 2 === 0) wrapper.classList.add('reverse');
+            let angle = (idx / nearbyUsers.length) * Math.PI * 2;
+            let left = centerX + Math.cos(angle) * radius - 45;
+            let top = centerY + Math.sin(angle) * radius - 25;
 
             let card = document.createElement('div');
             card.className = 'user-card';
-            card.style.top = `-${radius}px`;
-            card.style.left = '-45px';
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
             card.innerHTML = `<img src="${user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'"><span>${escapeHtml(user.profile?.name?.split(' ')[0] || user.username)}</span>`;
             card.onclick = (e) => { e.stopPropagation(); showProfileCard(user); };
-            wrapper.appendChild(card);
-            container.appendChild(wrapper);
+            container.appendChild(card);
         });
         showToast(`${nearbyUsers.length} user(s) within 10 meters. Click to view profile.`);
 
@@ -620,6 +621,7 @@ function goToMain() {
     updateSidebar();
     startLocationTracking();
     setInterval(() => { if (currentUser) checkIncomingRings(); }, 1500);
+    setInterval(() => { if (currentUser) updateSidebar(); }, 5000); // Refresh messages every 5 seconds
     checkIncomingRings();
     
     document.getElementById('findBtn').onclick = () => {
@@ -629,6 +631,7 @@ function goToMain() {
     document.getElementById('logoutBtn').onclick = () => { currentUser = null; stopLocationTracking(); stopNearbyRefresh(); location.reload(); };
     document.getElementById('editProfileBtn').onclick = openEditModal;
     updateMyOrbitProfile();
+    startNearbyRefresh(); // Start automatic nearby refresh
 }
 
 function updateMyOrbitProfile() {
