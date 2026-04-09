@@ -234,7 +234,7 @@ app.post('/api/acceptRing', async (req, res) => {
 app.get('/api/pendingRings', async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT r.id, r.from_user_id, u.username FROM rings r JOIN users u ON r.from_user_id = u.id WHERE r.to_user_id = $1 AND r.status = $2',
+            'SELECT r.id, r.from_user_id, u.username, u.profile FROM rings r JOIN users u ON r.from_user_id = u.id WHERE r.to_user_id = $1 AND r.status = $2',
             [req.session.userId, 'pending']
         );
         res.json({ success: true, rings: result.rows });

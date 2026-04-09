@@ -203,74 +203,120 @@ function openChatWith(user) {
     updateSidebar();
 }
 
-function ringUser(targetUser) {
-    if (!currentUser || targetUser.username === currentUser.username) return;
-    showToast(`Ringing ${targetUser.profile.name}...`);
-    let time = new Date().toLocaleTimeString();
-    ringHistory[currentUser.username].unshift({ text: `You rang ${targetUser.username} at ${time}`, rangBack: false });
-    if (!pendingRings[targetUser.username]) pendingRings[targetUser.username] = [];
-    pendingRings[targetUser.username].push({ from: currentUser.username, time: Date.now() });
-    saveAll();
-    updateSidebar();
-    checkIncomingRings();
-    showToast(`${targetUser.profile.name} can ring you back`);
+// Ring notification data
+let lastRingCheck = 0;
+let ringsNotified = new Set();
+
+// Play ring sound
+function playRingSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800; // Hz
+    oscillator.type = 'sine';
+    
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+    
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+    }
 }
 
-function checkIncomingRings() {
-    if (!currentUser) return;
-    let myPending = pendingRings[currentUser.username] || [];
-    if (myPending.length === 0) return;
+function ringUser(targetUser) {
+    if (!currentUser || targetUser.username === currentUser.username) return;
     
-    myPending.forEach(req => {
-        let fromUser = usersDB.find(u => u.username === req.from);
-        if (!fromUser) return;
+    (async () => {
+        try {
+            const result = await apiCall('sendRing', { toUserId: targetUser.id }, 'POST');
+            if (result.success) {
+                showToast(`Ringing ${targetUser.profile.name}...`);
+                let time = new Date().toLocaleTimeString();
+                ringHistory[currentUser.username].unshift({ text: `You rang ${targetUser.username} at ${time}`, rangBack: false });
+                saveAll();
+                updateSidebar();
+            } else {
+                showToast('Failed to send ring');
+            }
+        } catch (error) {
+            console.error('Ring error:', error);
+            showToast('Error sending ring');
+        }
+    })();
+}
+
+async function checkIncomingRings() {
+    if (!currentUser) return;
+    
+    try {
+        const result = await apiCall('pendingRings', {}, 'GET');
+        if (!result.success || !result.rings) return;
         
-        let modalDiv = document.createElement('div');
-        modalDiv.className = 'profile-modal';
-        modalDiv.innerHTML = `
-            <div class="profile-header" style="background:linear-gradient(135deg,#4f46e5,#db2777)">
-                <div style="font-size:2rem;">🔔</div>
-                <div class="profile-name">Incoming Ring</div>
-            </div>
-            <div class="profile-info">
-                <p style="text-align:center;"><strong>${escapeHtml(fromUser.profile?.name || fromUser.username)}</strong> wants to connect</p>
-                <p style="text-align:center; font-size:0.75rem;">Ring back to reveal location and start messaging.</p>
-            </div>
-            <div class="profile-actions">
-                <button id="ringBackBtn" class="ring-action">Ring Back</button>
-                <button id="ignoreRingBtn" class="ignore-action">Ignore</button>
-            </div>
-        `;
-        document.body.appendChild(modalDiv);
-        let overlay = document.createElement('div');
-        overlay.className = 'overlay';
-        document.body.appendChild(overlay);
-        
-        let cleanup = () => { modalDiv.remove(); overlay.remove(); };
-        
-        document.getElementById('ringBackBtn').onclick = () => {
-            let timeBack = new Date().toLocaleTimeString();
-            ringHistory[currentUser.username].unshift({ text: `${fromUser.username} rang you back at ${timeBack}`, rangBack: true });
-            let threadId = [currentUser.username, fromUser.username].sort().join('_');
-            if (!messagesDB[threadId]) messagesDB[threadId] = [];
-            messagesDB[threadId].push({ sender: 'system', text: `Connected with ${fromUser.profile.name}! You can now message.`, time: Date.now() });
-            saveAll();
-            showToast(`Connected with ${fromUser.profile.name}!`);
-            cleanup();
-            updateSidebar();
-            pendingRings[currentUser.username] = (pendingRings[currentUser.username] || []).filter(r => r.from !== fromUser.username);
-            saveAll();
-        };
-        
-        document.getElementById('ignoreRingBtn').onclick = () => {
-            cleanup();
-            showToast(`Ignored ${fromUser.profile?.name}`);
-            pendingRings[currentUser.username] = (pendingRings[currentUser.username] || []).filter(r => r.from !== fromUser.username);
-            saveAll();
-        };
-    });
-    pendingRings[currentUser.username] = [];
-    saveAll();
+        result.rings.forEach(ring => {
+            const notifId = `ring_${ring.id}`;
+            if (ringsNotified.has(notifId)) return;
+            ringsNotified.add(notifId);
+            
+            // Play sound and vibration
+            playRingSound();
+            
+            const userResult = usersDB.find(u => u.id === ring.from_user_id);
+            const userName = ring.username || 'Unknown User';
+            
+            let modalDiv = document.createElement('div');
+            modalDiv.className = 'profile-modal';
+            modalDiv.innerHTML = `
+                <div class="profile-header" style="background:linear-gradient(135deg,#4f46e5,#db2777)">
+                    <div style="font-size:2rem; animation: pulse 0.5s infinite;">🔔</div>
+                    <div class="profile-name">Incoming Ring</div>
+                </div>
+                <div class="profile-info">
+                    <p style="text-align:center;"><strong>${escapeHtml(userName)}</strong> wants to connect</p>
+                    <p style="text-align:center; font-size:0.75rem;">Ring back to reveal location and start messaging.</p>
+                </div>
+                <div class="profile-actions">
+                    <button id="ringBackBtn_${ring.id}" class="ring-action">Ring Back</button>
+                    <button id="ignoreRingBtn_${ring.id}" class="ignore-action">Ignore</button>
+                </div>
+            `;
+            document.body.appendChild(modalDiv);
+            let overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            document.body.appendChild(overlay);
+            
+            let cleanup = () => { modalDiv.remove(); overlay.remove(); };
+            
+            document.getElementById(`ringBackBtn_${ring.id}`).onclick = async () => {
+                try {
+                    const acceptResult = await apiCall('acceptRing', { ringId: ring.id }, 'POST');
+                    if (acceptResult.success) {
+                        let timeBack = new Date().toLocaleTimeString();
+                        ringHistory[currentUser.username].unshift({ text: `${userName} rang you back at ${timeBack}`, rangBack: true });
+                        saveAll();
+                        showToast(`Connected with ${userName}!`);
+                        cleanup();
+                        updateSidebar();
+                    }
+                } catch (error) {
+                    console.error('Accept ring error:', error);
+                }
+            };
+            
+            document.getElementById(`ignoreRingBtn_${ring.id}`).onclick = () => {
+                cleanup();
+                showToast(`Ignored ${userName}`);
+            };
+        });
+    } catch (error) {
+        console.error('Check incoming rings error:', error);
+    }
 }
 
 function showProfileCard(user) {
@@ -495,7 +541,7 @@ function goToMain() {
     initSatellite();
     updateSidebar();
     startLocationTracking();
-    setInterval(() => { if (currentUser) checkIncomingRings(); }, 4000);
+    setInterval(() => { if (currentUser) checkIncomingRings(); }, 1500);
     checkIncomingRings();
     
     document.getElementById('findBtn').onclick = () => {
