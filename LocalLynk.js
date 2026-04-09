@@ -300,7 +300,13 @@ async function checkIncomingRings() {
                         let timeBack = new Date().toLocaleTimeString();
                         ringHistory[currentUser.username].unshift({ text: `${userName} rang you back at ${timeBack}`, rangBack: true });
                         saveAll();
-                        showToast(`Connected with ${userName}!`);
+                        
+                        // Send ring back to the other user
+                        const sendRingResult = await apiCall('sendRing', { toUserId: ring.from_user_id }, 'POST');
+                        if (sendRingResult.success) {
+                            showToast(`Ringing ${userName} back...`);
+                        }
+                        
                         cleanup();
                         updateSidebar();
                     }
