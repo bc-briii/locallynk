@@ -474,9 +474,11 @@ async function findNearbyUsers() {
             return;
         }
 
-        let centerX = window.innerWidth * 0.5 + 160;
-        let centerY = window.innerHeight * 0.5;
-        let radius = 120; // Position inside the satellite ring
+        let containerRect = container.getBoundingClientRect();
+        let satelliteRect = document.getElementById('satelliteVisual').getBoundingClientRect();
+        let centerX = satelliteRect.left - containerRect.left + satelliteRect.width * 0.5;
+        let centerY = satelliteRect.top - containerRect.top + satelliteRect.height * 0.5;
+        let radius = Math.min(satelliteRect.width, satelliteRect.height) * 0.35;
 
         nearbyUsers.forEach((user, idx) => {
             let angle = (idx / nearbyUsers.length) * Math.PI * 2;
