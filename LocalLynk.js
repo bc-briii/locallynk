@@ -352,14 +352,16 @@ async function checkIncomingRings() {
             
             let modalDiv = document.createElement('div');
             modalDiv.className = 'profile-modal';
+            modalDiv.style.background = '#ffffff';
+            modalDiv.style.borderColor = '#cbd5e1';
             modalDiv.innerHTML = `
-                <div class="profile-header" style="background:linear-gradient(135deg,#4f46e5,#db2777)">
-                    <div style="font-size:2rem; animation: pulse 0.5s infinite;">🔔</div>
-                    <div class="profile-name">Incoming Ring</div>
+                <div class="profile-header" style="background:#ffffff; box-shadow:none; padding:1rem 1.2rem 0.6rem;">
+                    <div style="font-size:2rem; opacity:0.6;">🔔</div>
+                    <div class="profile-name" style="color:#111827;">Incoming Ring</div>
                 </div>
-                <div class="profile-info" style="color:white;">
-                    <p style="text-align:center; color:white;"><strong>${escapeHtml(userName)}</strong> wants to connect</p>
-                    <p style="text-align:center; font-size:0.75rem; color:white;">Ring back to reveal location and start messaging.</p>
+                <div class="profile-info" style="color:#111827; padding:1rem;">
+                    <p style="text-align:center; color:#111827;"><strong>${escapeHtml(userName)}</strong> wants to connect</p>
+                    <p style="text-align:center; font-size:0.75rem; color:#4b5563;">Ring back to reveal location and start messaging.</p>
                 </div>
                 <div class="profile-actions">
                     <button id="ringBackBtn_${ring.id}" class="ring-action">Ring Back</button>
@@ -421,9 +423,9 @@ function showProfileCard(user) {
             <div class="profile-name">${escapeHtml(p.name)}</div>
         </div>
         <div class="profile-info">
-            <div class="info-row"><span class="info-icon">🧑</span><div class="info-text"><strong>Age</strong>${p.age} years</div></div>
-            <div class="info-row"><span class="info-icon">✨</span><div class="info-text"><strong>Hobbies</strong>${p.hobbies || 'Exploring'}</div></div>
-            <div class="info-row"><span class="info-icon">💬</span><div class="info-text"><strong>Bio</strong>${p.bio || 'Ready to connect'}</div></div>
+            <div class="info-row"><span class="info-icon"></span><div class="info-text"><strong>Age</strong>${p.age} years</div></div>
+            <div class="info-row"><span class="info-icon"></span><div class="info-text"><strong>Hobbies</strong>${p.hobbies || 'Exploring'}</div></div>
+            <div class="info-row"><span class="info-icon"></span><div class="info-text"><strong>Bio</strong>${p.bio || 'Ready to connect'}</div></div>
         </div>
         <div class="profile-actions">
             <button class="ignore-action" data-action="ignore">Ignore</button>
