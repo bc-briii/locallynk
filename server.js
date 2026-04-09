@@ -160,7 +160,7 @@ app.get('/api/nearbyUsers', async (req, res) => {
 
         // Get all users except current user
         const result = await pool.query(
-            "SELECT id, username, profile, location, completed FROM users WHERE id != $1 AND completed = true AND active = true AND last_seen > NOW() - INTERVAL '15 seconds'",
+            "SELECT id, username, profile, location, completed FROM users WHERE id != $1 AND completed = true AND active = true AND last_seen > NOW() - INTERVAL '30 seconds'",
             [req.session.userId || 0]
         );
 

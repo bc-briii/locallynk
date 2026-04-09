@@ -11,16 +11,19 @@ const API_BASE_URL = 'https://locallynk-api.onrender.com';
 async function apiCall(action, data = {}, method = 'POST') {
     try {
         const isGet = method === 'GET';
-        const url = isGet ? `${API_BASE_URL}/api/${action}?${new URLSearchParams(data)}` : `${API_BASE_URL}/api/${action}`;
+        const query = isGet ? `?${new URLSearchParams(data)}` : '';
+        const url = `${API_BASE_URL}/api/${action}${query}`;
         
-        const response = await fetch(url, {
+        const options = {
             method: method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: isGet ? undefined : JSON.stringify(data),
             credentials: 'include' // Include session cookies
-        });
+        };
+        if (!isGet) {
+            options.headers = { 'Content-Type': 'application/json' };
+            options.body = JSON.stringify(data);
+        }
+
+        const response = await fetch(url, options);
         return await response.json();
     } catch (error) {
         console.error('API call failed:', error);
@@ -319,7 +322,7 @@ async function findNearbyUsers() {
         const result = await apiCall('nearbyUsers', {
             lat: userLocation.lat,
             lng: userLocation.lng,
-            radius: 0.01
+            radius: 0.02
         }, 'GET');
 
         console.log('Nearby users API result:', result);
@@ -335,8 +338,8 @@ async function findNearbyUsers() {
         container.innerHTML = '';
 
         if (nearbyUsers.length === 0) {
-            container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:35%; background:#0f172a; padding:8px 20px; border-radius:30px; text-align:center;">No users nearby<br><small>(within 10 meters)</small></div>';
-            showToast('No users found within 10 meters');
+            container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:35%; background:#0f172a; padding:8px 20px; border-radius:30px; text-align:center;">No users nearby<br><small>(within 20 meters)</small></div>';
+            showToast('No users found within 20 meters');
             return;
         }
 
