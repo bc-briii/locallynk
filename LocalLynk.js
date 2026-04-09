@@ -295,6 +295,8 @@ async function findNearbyUsers() {
             radius: 0.01 // Temporarily increased to 10 meters for testing
         }, 'GET');
         
+        console.log('Nearby users API result:', result);
+        
         if (!result.success) {
             console.error('API call failed:', result);
             showToast('Failed to find nearby users: ' + (result.error || 'Unknown error'));
