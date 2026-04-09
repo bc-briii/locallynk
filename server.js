@@ -65,9 +65,13 @@ app.post('/api/register', async (req, res) => {
         );
 
         req.session.userId = result.rows[0].id;
-        res.json({ success: true, user: result.rows[0] });
+        res.json({ success: true, user: result.rows[0], user_id: result.rows[0].id });
     } catch (error) {
         console.error('Register error:', error);
+        // Check for duplicate username error
+        if (error.message.includes('users_username_key') || error.message.includes('duplicate')) {
+            return res.json({ success: false, error: 'Username already exists' });
+        }
         res.json({ success: false, error: error.message });
     }
 });
@@ -128,6 +132,24 @@ app.post('/api/logout', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Logout error:', error);
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// Check username availability
+app.get('/api/checkUsername', async (req, res) => {
+    try {
+        const { username } = req.query;
+        if (!username) {
+            return res.json({ success: false, error: 'Username required' });
+        }
+        const result = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        if (result.rows.length > 0) {
+            return res.json({ success: false, error: 'Username already exists' });
+        }
+        res.json({ success: true, available: true });
+    } catch (error) {
+        console.error('Check username error:', error);
         res.json({ success: false, error: error.message });
     }
 });

@@ -581,18 +581,17 @@ document.getElementById('backToLoginBtn').onclick = function() {
     document.getElementById('regError').innerText = '';
 };
 
+// Store temp account data during registration
+let tempAccountData = {};
+
 document.getElementById('registerBtn').onclick = async function() {
     let u = document.getElementById('regUser').value.trim();
     let p = document.getElementById('regPass').value;
     let c = document.getElementById('regConfirm').value;
     let e = document.getElementById('regEmail').value.trim();
-    let name = document.getElementById('regName').value.trim();
-    let age = parseInt(document.getElementById('regAge').value);
-    let hobbies = document.getElementById('regHobbies').value.trim();
-    let bio = document.getElementById('regBio').value.trim();
     let terms = document.getElementById('termsCheck').checked;
     
-    if (!u || !p || !c || !e || !name || !age || !hobbies) {
+    if (!u || !p || !c || !e) {
         document.getElementById('regError').innerText = 'All fields required';
         return;
     }
@@ -605,15 +604,44 @@ document.getElementById('registerBtn').onclick = async function() {
         return;
     }
     
+    // Check if username exists
+    try {
+        const checkResult = await apiCall('checkUsername', { username: u }, 'GET');
+        if (!checkResult.success && checkResult.error === 'Username already exists') {
+            document.getElementById('regError').innerText = 'Username already exists';
+            return;
+        }
+    } catch (error) {
+        console.log('Username check error:', error);
+    }
+    
+    // Store account data and move to profile step
+    tempAccountData = { username: u, password: p, email: e };
+    document.getElementById('registerPage').classList.remove('active');
+    document.getElementById('profileCompletionPage').classList.add('active');
+    document.getElementById('profileError').innerText = '';
+};
+
+document.getElementById('completeProfileBtn').onclick = async function() {
+    let name = document.getElementById('profileName').value.trim();
+    let age = parseInt(document.getElementById('profileAge').value);
+    let hobbies = document.getElementById('profileHobbies').value.trim();
+    let bio = document.getElementById('profileBio').value.trim();
+    
+    if (!name || !age || !hobbies) {
+        document.getElementById('profileError').innerText = 'All fields required';
+        return;
+    }
+    
     // Get uploaded image or use default
-    const preview = document.getElementById('regImagePreview');
+    const preview = document.getElementById('profileImagePreview');
     const picture = preview.dataset.imageData || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
     
-    // ONLY use PHP API - no fallback
+    // Register with account + profile data
     const result = await apiCall('register', { 
-        username: u, 
-        password: p, 
-        email: e,
+        username: tempAccountData.username, 
+        password: tempAccountData.password, 
+        email: tempAccountData.email,
         profile: {
             name: name,
             age: age,
@@ -626,9 +654,9 @@ document.getElementById('registerBtn').onclick = async function() {
     if (result.success) {
         let newUser = { 
             id: result.user_id, 
-            username: u, 
-            password: p, 
-            email: e, 
+            username: tempAccountData.username, 
+            password: tempAccountData.password, 
+            email: tempAccountData.email, 
             completed: true, 
             profile: {
                 name: name,
@@ -639,29 +667,40 @@ document.getElementById('registerBtn').onclick = async function() {
             }
         };
         currentUser = newUser;
-        document.getElementById('registerPage').classList.remove('active');
+        tempAccountData = {};
+        document.getElementById('profileCompletionPage').classList.remove('active');
         goToMain();
         return;
     }
     
     if (result.error === 'Username already exists') {
-        document.getElementById('regError').innerText = 'Username already exists';
+        document.getElementById('profileError').innerText = 'Username already exists';
         return;
     }
     
-    // Show API error if any
-    document.getElementById('regError').innerText = result.error || 'Registration failed. Please try again.';
+    document.getElementById('profileError').innerText = result.error || 'Registration failed. Please try again.';
 };
 
-document.getElementById('regProfilePictureFile').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('regImagePreview');
-            preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-            preview.dataset.imageData = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-});
+document.getElementById('backToAccountBtn').onclick = function() {
+    document.getElementById('profileCompletionPage').classList.remove('active');
+    document.getElementById('registerPage').classList.add('active');
+};
+
+// Profile picture file input listener
+const profilePictureFile = document.getElementById('profilePictureFile');
+if (profilePictureFile) {
+    profilePictureFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const preview = document.getElementById('profileImagePreview');
+                if (preview) {
+                    preview.innerHTML = `<img src="${event.target.result}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                    preview.dataset.imageData = event.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
