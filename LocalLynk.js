@@ -204,6 +204,7 @@ async function openChatWith(user) {
         <textarea id="chatInput" rows="4" placeholder="Type your message..."></textarea>
         <div class="chat-actions">
             <button class="btn" id="sendChatBtn">Send</button>
+            <button class="btn btn-outline" id="refreshChatBtn">Refresh</button>
             <button class="btn btn-outline" id="closeChatBtn">Close</button>
         </div>
     `;
@@ -260,6 +261,12 @@ async function openChatWith(user) {
         } else {
             showToast('Unable to send message to receiver');
         }
+    };
+
+    modal.querySelector('#refreshChatBtn').onclick = async () => {
+        await loadMessageThread();
+        renderChatHistory();
+        showToast('Messages refreshed');
     };
 
     modal.querySelector('#closeChatBtn').onclick = close;
@@ -469,7 +476,7 @@ async function findNearbyUsers() {
 
         let centerX = window.innerWidth * 0.5 + 160;
         let centerY = window.innerHeight * 0.5;
-        let radius = 180;
+        let radius = 120; // Position inside the satellite ring
 
         nearbyUsers.forEach((user, idx) => {
             let angle = (idx / nearbyUsers.length) * Math.PI * 2;
