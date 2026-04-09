@@ -632,6 +632,7 @@ function goToMain() {
     document.getElementById('editProfileBtn').onclick = openEditModal;
     updateMyOrbitProfile();
     startNearbyRefresh(); // Start automatic nearby refresh
+    findNearbyUsers(); // Show nearby users immediately
 }
 
 function updateMyOrbitProfile() {

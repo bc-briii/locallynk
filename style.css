@@ -245,12 +245,12 @@ canvas {
     top: 50%;
     width: 0;
     height: 0;
-    animation: orbit 8s linear infinite;
+    transform: translate(-50%, -50%);
 }
 
 .my-profile-orbit img {
     position: absolute;
-    top: -165px;
+    top: -30px;
     left: -30px;
     width: 60px;
     height: 60px;
@@ -528,6 +528,35 @@ canvas {
     gap: 0.8rem;
 }
 
-.chat-actions .btn {
-    flex: 1;
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.btn-outline:hover {
+    background: rgba(102,126,234,0.1);
+    border-color: #667eea;
+}
+
+.user-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(79,70,229,0.6);
+    border-color: #8b5cf6;
+}
+
+.ring-action:hover, .message-action:hover, .ignore-action:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.ring-action:hover {
+    background: linear-gradient(135deg, #7c3aed, #db2777);
+}
+
+.message-action:hover {
+    background: #1d4ed8;
+}
+
+.ignore-action:hover {
+    background: #475569;
 }
