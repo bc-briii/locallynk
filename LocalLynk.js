@@ -357,9 +357,9 @@ async function checkIncomingRings() {
                     <div style="font-size:2rem; animation: pulse 0.5s infinite;">🔔</div>
                     <div class="profile-name">Incoming Ring</div>
                 </div>
-                <div class="profile-info">
-                    <p style="text-align:center;"><strong>${escapeHtml(userName)}</strong> wants to connect</p>
-                    <p style="text-align:center; font-size:0.75rem;">Ring back to reveal location and start messaging.</p>
+                <div class="profile-info" style="color:white;">
+                    <p style="text-align:center; color:white;"><strong>${escapeHtml(userName)}</strong> wants to connect</p>
+                    <p style="text-align:center; font-size:0.75rem; color:white;">Ring back to reveal location and start messaging.</p>
                 </div>
                 <div class="profile-actions">
                     <button id="ringBackBtn_${ring.id}" class="ring-action">Ring Back</button>
@@ -526,7 +526,16 @@ function openEditModal() {
         <input id="editAge" placeholder="Age" value="${currentUser.profile.age}">
         <input id="editHobbies" placeholder="Hobbies" value="${escapeHtml(currentUser.profile.hobbies)}">
         <textarea id="editBio" rows="2" placeholder="Bio">${escapeHtml(currentUser.profile.bio)}</textarea>
-        <input id="editPic" placeholder="Image URL" value="${escapeHtml(currentUser.profile.picture || '')}">
+        <label style="color:#cbd5e1; font-size:0.85rem; margin-top:10px; display:block;">Profile Picture</label>
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+            <input type="file" id="editPicFile" accept="image/*" style="display:none;">
+            <button type="button" class="btn btn-outline" id="chooseEditPicBtn" style="flex:1; min-width:150px;">Choose Photo</button>
+            <div id="editPicPreview" style="width:60px; height:60px; border-radius:50%; border:2px solid #4f46e5; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#cbd5e1; font-size:0.75rem;">Preview</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:1rem; flex-wrap:wrap;">
+            <input id="editPic" placeholder="Image URL" value="${escapeHtml(currentUser.profile.picture || '')}" style="flex:1; min-width:220px;">
+            <span id="editPicLabel" style="color:#cbd5e1; font-size:0.8rem;">Current file: none</span>
+        </div>
         <button class="btn" id="saveEditBtn">Save Changes</button>
         <button class="btn btn-outline" id="cancelEditBtn">Cancel</button>
     `;
@@ -535,6 +544,40 @@ function openEditModal() {
     overlay.className = 'overlay';
     document.body.appendChild(overlay);
     
+    const editPicFile = document.getElementById('editPicFile');
+    const editPicLabel = document.getElementById('editPicLabel');
+    const editPicPreview = document.getElementById('editPicPreview');
+    const editPicUrl = document.getElementById('editPic');
+
+    document.getElementById('chooseEditPicBtn').onclick = () => editPicFile.click();
+
+    editPicFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) {
+            editPicLabel.textContent = 'Current file: none';
+            return;
+        }
+        editPicLabel.textContent = `Current file: ${file.name}`;
+
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                if (editPicPreview) {
+                    editPicPreview.innerHTML = `<img src="${event.target.result}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                    editPicPreview.dataset.imageData = event.target.result;
+                }
+                if (editPicUrl) {
+                    editPicUrl.value = '';
+                }
+            };
+            reader.readAsDataURL(file);
+        } else {
+            if (editPicPreview) {
+                editPicPreview.textContent = 'Invalid file';
+            }
+        }
+    });
+
     let close = () => { modal.remove(); overlay.remove(); };
     
     document.getElementById('saveEditBtn').onclick = async () => {
@@ -542,7 +585,8 @@ function openEditModal() {
         let newAge = parseInt(document.getElementById('editAge').value);
         let newHobbies = document.getElementById('editHobbies').value.trim();
         let newBio = document.getElementById('editBio').value.trim();
-        let newPicture = document.getElementById('editPic').value.trim();
+        let pictureFromFile = editPicPreview?.dataset?.imageData;
+        let newPicture = pictureFromFile || editPicUrl.value.trim();
         
         if (!newName || !newAge || !newHobbies) {
             alert('Please fill name, age and hobbies');
@@ -579,6 +623,37 @@ function openEditModal() {
     document.getElementById('cancelEditBtn').onclick = close;
     overlay.onclick = close;
 }
+
+function showTermsModal() {
+    let modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML = `
+        <h3>Terms & Agreements</h3>
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:1rem; padding:1rem; max-height:320px; overflow-y:auto; color:#e2e8f0;">
+            <p><strong>terms</strong> - 1. dapat lagi ka naka shorts, 2. dapat di ka lalabas ng bahay ng di naka bra. 3. dapat ako lang ang boybestfriend mo. 4. lagi akong nandito mamahalin ka. 5.dapat malinis titi mo</p>
+            <p><strong>Agreements</strong> - 1. dapat mabangon. 2. galit sa israel. 3. fuck us imperialism. 4. i luv moka.</p>
+        </div>
+        <button class="btn" id="closeTermsBtn">Close</button>
+    `;
+    document.body.appendChild(modal);
+    let overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    document.body.appendChild(overlay);
+
+    document.getElementById('closeTermsBtn').onclick = () => { modal.remove(); overlay.remove(); };
+    overlay.onclick = () => { modal.remove(); overlay.remove(); };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const termsLink = document.getElementById('termsLink');
+    if (termsLink) {
+        termsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showTermsModal();
+        });
+    }
+});
 
 function initSatellite() {
     let canvas = document.getElementById('satelliteCanvas');
