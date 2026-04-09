@@ -470,11 +470,27 @@ canvas {
 }
 
 .message-modal {
+    position: fixed;
     left: calc(320px + 1.5rem);
+    right: auto;
     top: 50%;
     transform: translateY(-50%);
     width: 420px;
     max-width: calc(100% - 360px);
+    max-height: calc(100vh - 120px);
+    padding-bottom: 1rem;
+    overflow: hidden;
+}
+
+.message-modal h3 {
+    margin-bottom: 1rem;
+    color: #cbd5e6;
+}
+
+.message-modal textarea {
+    min-height: 140px;
+    resize: vertical;
+    border-radius: 1rem;
 }
 
 .chat-history {
@@ -485,6 +501,10 @@ canvas {
     max-height: 280px;
     overflow-y: auto;
     margin-bottom: 1rem;
+}
+
+.chat-history .chat-line:last-child {
+    margin-bottom: 0;
 }
 
 .chat-line {
@@ -504,4 +524,8 @@ canvas {
 .chat-actions {
     display: flex;
     gap: 0.8rem;
+}
+
+.chat-actions .btn {
+    flex: 1;
 }

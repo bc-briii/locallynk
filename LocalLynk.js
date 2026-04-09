@@ -338,22 +338,28 @@ async function checkIncomingRings() {
             document.getElementById(`ringBackBtn_${ring.id}`).onclick = async () => {
                 try {
                     const acceptResult = await apiCall('acceptRing', { ringId: ring.id }, 'POST');
-                    if (acceptResult.success) {
-                        let timeBack = new Date().toLocaleTimeString();
-                        ringHistory[currentUser.username].unshift({ text: `${userName} rang you back at ${timeBack}`, rangBack: true });
-                        saveAll();
-                        
-                        // Send ring back to the other user
-                        const sendRingResult = await apiCall('sendRing', { toUserId: ring.from_user_id }, 'POST');
-                        if (sendRingResult.success) {
-                            showToast(`Ringing ${userName} back...`);
-                        }
-                        
-                        cleanup();
-                        updateSidebar();
+                    if (!acceptResult.success) {
+                        showToast('Failed to accept ring');
+                        return;
                     }
+
+                    let timeBack = new Date().toLocaleTimeString();
+                    ringHistory[currentUser.username] = ringHistory[currentUser.username] || [];
+                    ringHistory[currentUser.username].unshift({ text: `${userName} rang you back at ${timeBack}`, rangBack: true });
+                    saveAll();
+
+                    const sendRingResult = await apiCall('sendRing', { toUserId: ring.from_user_id }, 'POST');
+                    if (sendRingResult.success) {
+                        showToast(`Ringing ${userName} back...`);
+                    } else {
+                        showToast(`Accepted ring, but ring back failed`);
+                    }
+
+                    cleanup();
+                    updateSidebar();
                 } catch (error) {
                     console.error('Accept ring error:', error);
+                    showToast('Error handling ring back');
                 }
             };
             
