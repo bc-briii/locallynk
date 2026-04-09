@@ -192,7 +192,7 @@ function updateSidebar() {
     else msgDiv.innerHTML = msgArray.slice(-5).map(m => `<div class="msg-item">${escapeHtml(m)}</div>`).join('');
 }
 
-function openChatWith(user) {
+async function openChatWith(user) {
     let threadId = [currentUser.username, user.username].sort().join('_');
     if (!messagesDB[threadId]) messagesDB[threadId] = [];
 
@@ -229,19 +229,43 @@ function openChatWith(user) {
         overlay.remove();
     }
 
-    modal.querySelector('#sendChatBtn').onclick = () => {
+    async function loadMessageThread() {
+        try {
+            const response = await apiCall(`messages/${user.id}`, {}, 'GET');
+            if (response.success && Array.isArray(response.messages)) {
+                messagesDB[threadId] = response.messages.map(msg => ({
+                    sender: msg.from_user_id == currentUser.id ? currentUser.username : user.username,
+                    text: msg.message,
+                    time: new Date(msg.created_at).getTime()
+                }));
+                saveAll();
+            }
+        } catch (error) {
+            console.warn('Unable to load messages:', error);
+        }
+    }
+
+    modal.querySelector('#sendChatBtn').onclick = async () => {
         let msgText = chatInput.value.trim();
         if (!msgText) return;
-        messagesDB[threadId].push({ sender: currentUser.username, text: msgText, time: Date.now() });
-        saveAll();
-        chatInput.value = '';
-        renderChatHistory();
-        showToast(`Message sent to ${user.profile.name}`);
-        updateSidebar();
+
+        const sendResult = await apiCall('sendMessage', { toUserId: user.id, message: msgText }, 'POST');
+        if (sendResult.success) {
+            messagesDB[threadId].push({ sender: currentUser.username, text: msgText, time: Date.now() });
+            saveAll();
+            chatInput.value = '';
+            renderChatHistory();
+            showToast(`Message sent to ${user.profile.name}`);
+            updateSidebar();
+        } else {
+            showToast('Unable to send message to receiver');
+        }
     };
 
     modal.querySelector('#closeChatBtn').onclick = close;
     overlay.onclick = close;
+
+    await loadMessageThread();
     renderChatHistory();
 }
 
@@ -383,9 +407,9 @@ function showProfileCard(user) {
             <div class="profile-name">${escapeHtml(p.name)}</div>
         </div>
         <div class="profile-info">
-            <div class="info-row"><span class="info-icon">Age</span><div class="info-text"><strong>Age</strong>${p.age} years</div></div>
-            <div class="info-row"><span class="info-icon">Hobbies</span><div class="info-text"><strong>Hobbies</strong>${p.hobbies || 'Exploring'}</div></div>
-            <div class="info-row"><span class="info-icon">Bio</span><div class="info-text"><strong>Bio</strong>${p.bio || 'Ready to connect'}</div></div>
+            <div class="info-row"><span class="info-icon">🧑</span><div class="info-text"><strong>Age</strong>${p.age} years</div></div>
+            <div class="info-row"><span class="info-icon">✨</span><div class="info-text"><strong>Hobbies</strong>${p.hobbies || 'Exploring'}</div></div>
+            <div class="info-row"><span class="info-icon">💬</span><div class="info-text"><strong>Bio</strong>${p.bio || 'Ready to connect'}</div></div>
         </div>
         <div class="profile-actions">
             <button class="ignore-action" data-action="ignore">Ignore</button>

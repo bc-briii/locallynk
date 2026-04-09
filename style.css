@@ -258,6 +258,8 @@ canvas {
     border: 3px solid white;
     box-shadow: 0 0 24px rgba(102,126,234,0.5);
     background: white;
+    transform-origin: center center;
+    animation: keepUpright 8s linear infinite reverse;
 }
 
 @keyframes orbit {
