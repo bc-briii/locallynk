@@ -25,10 +25,10 @@
     <div id="registerPage" class="page">
         <div class="auth-container">
             <h2>Create Account</h2>
-            <div class="input-group"><input type="text" id="regUser" placeholder="Username"></div>
-            <div class="input-group"><input type="password" id="regPass" placeholder="Password"></div>
+            <div class="input-group"><input type="text" id="regUser" placeholder="Username (must be at least 8 characters)"></div>
+            <div class="input-group"><input type="password" id="regPass" placeholder="Password (must be at least 8 characters)"></div>
             <div class="input-group"><input type="password" id="regConfirm" placeholder="Confirm Password"></div>
-            <div class="input-group"><input type="email" id="regEmail" placeholder="Email"></div>
+            <div class="input-group"><input type="email" id="regEmail" placeholder="Email (optional)"></div>
             <div class="checkbox-group">
                 <input type="checkbox" id="termsCheck">
                 <label for="termsCheck">I agree to the <span id="termsLink" class="terms-link">Terms & Agreements</span></label>
@@ -52,7 +52,7 @@
                 <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
                     <input type="file" id="profilePictureFile" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-outline" onclick="document.getElementById('profilePictureFile').click()" style="flex:1; min-width:160px;">
-                        📷 Choose Photo
+                        Choose Photo
                     </button>
                     <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-start; width:220px;">
                         <div id="profileImagePreview" style="width:60px; height:60px; border-radius:50%; border:2px solid #6366f1; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.8rem;">
@@ -62,7 +62,7 @@
                     </div>
                 </div>
             </div>
-            <button class="btn" id="completeProfileBtn">Launch into Orbit</button>
+            <button class="btn" id="completeProfileBtn">Sign In</button>
             <button class="btn btn-outline" id="backToAccountBtn">Back</button>
             <div id="profileError" class="error-msg"></div>
         </div>
