@@ -197,7 +197,7 @@ function updateSidebar() {
     let p = currentUser.profile;
     document.getElementById('profileSummary').innerHTML = `
         <strong style="color:#a5b4fc;">${escapeHtml(p.name)}</strong><br>
-        ${p.age} years | ${p.hobbies?.split(',')[0] || '—'}<br>
+        ${p.age} years old | ${p.hobbies?.split(',')[0] || '—'}<br>
         <img src="${p.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" style="width:48px; border-radius:50%; margin-top:6px; border:1px solid #6366f1;">
     `;
     
