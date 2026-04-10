@@ -44,6 +44,33 @@ function saveAll() {
     localStorage.setItem('locallynk_pending', JSON.stringify(pendingRings));
 }
 
+// Save current user session to localStorage
+function saveUserSession() {
+    if (currentUser) {
+        localStorage.setItem('locallynk_session', JSON.stringify(currentUser));
+    }
+}
+
+// Restore user session from localStorage
+function restoreUserSession() {
+    const saved = localStorage.getItem('locallynk_session');
+    if (saved) {
+        try {
+            currentUser = JSON.parse(saved);
+            return true;
+        } catch (e) {
+            console.error('Failed to restore session:', e);
+            return false;
+        }
+    }
+    return false;
+}
+
+// Clear user session from localStorage
+function clearUserSession() {
+    localStorage.removeItem('locallynk_session');
+}
+
 // Get user's location
 async function getUserLocation() {
     if (!navigator.geolocation) {
@@ -718,7 +745,7 @@ function goToMain() {
         findNearbyUsers();
         startNearbyRefresh();
     };
-    document.getElementById('logoutBtn').onclick = () => { currentUser = null; stopLocationTracking(); stopNearbyRefresh(); location.reload(); };
+    document.getElementById('logoutBtn').onclick = () => { currentUser = null; clearUserSession(); stopLocationTracking(); stopNearbyRefresh(); location.reload(); };
     document.getElementById('editProfileBtn').onclick = openEditModal;
     updateMyOrbitProfile();
     startNearbyRefresh(); // Start automatic nearby refresh
@@ -741,6 +768,7 @@ document.getElementById('loginBtn').onclick = async function() {
     
     if (result.success) {
         currentUser = result.user;
+        saveUserSession();
         goToMain();
         return;
     }
@@ -846,6 +874,7 @@ document.getElementById('completeProfileBtn').onclick = async function() {
             }
         };
         currentUser = newUser;
+        saveUserSession();
         tempAccountData = {};
         document.getElementById('profileCompletionPage').classList.remove('active');
         goToMain();
@@ -892,3 +921,15 @@ if (profilePictureFile) {
         }
     });
 }
+
+
+// ============ AUTO-RESTORE SESSION ON PAGE LOAD ============
+window.addEventListener('DOMContentLoaded', function() {
+    if (restoreUserSession()) {
+        // User session found, go directly to main page
+        goToMain();
+        startLocationTracking();
+        startNearbyRefresh();
+        findNearbyUsers();
+    }
+});
