@@ -521,7 +521,7 @@ async function findNearbyUsers(showNotifications = true) {
             card.className = 'user-card';
             card.style.top = `-${radius}px`;
             card.style.left = '-45px';
-            card.innerHTML = `<img src="${user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">`;
+            card.innerHTML = `<img src="${user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'"><span>${escapeHtml(user.profile?.name?.split(' ')[0] || user.username)}</span>`;
             card.onclick = (e) => { e.stopPropagation(); showProfileCard(user); };
             wrapper.appendChild(card);
             container.appendChild(wrapper);
