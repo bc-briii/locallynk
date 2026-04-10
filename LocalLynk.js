@@ -748,8 +748,6 @@ function goToMain() {
     document.getElementById('logoutBtn').onclick = () => { currentUser = null; clearUserSession(); stopLocationTracking(); stopNearbyRefresh(); location.reload(); };
     document.getElementById('editProfileBtn').onclick = openEditModal;
     updateMyOrbitProfile();
-    startNearbyRefresh(); // Start automatic nearby refresh
-    findNearbyUsers(); // Show nearby users immediately
 }
 
 function updateMyOrbitProfile() {
@@ -929,7 +927,5 @@ window.addEventListener('DOMContentLoaded', function() {
         // User session found, go directly to main page
         goToMain();
         startLocationTracking();
-        startNearbyRefresh();
-        findNearbyUsers();
     }
 });
