@@ -197,7 +197,7 @@ function updateSidebar() {
     let p = currentUser.profile;
     document.getElementById('profileSummary').innerHTML = `
         <strong style="color:#a5b4fc;">${escapeHtml(p.name)}</strong><br>
-        ${p.age} yrs | ${p.hobbies?.split(',')[0] || '—'}<br>
+        ${p.age} years | ${p.hobbies?.split(',')[0] || '—'}<br>
         <img src="${p.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" style="width:48px; border-radius:50%; margin-top:6px; border:1px solid #6366f1;">
     `;
     
@@ -796,8 +796,16 @@ document.getElementById('registerBtn').onclick = async function() {
     let e = document.getElementById('regEmail').value.trim();
     let terms = document.getElementById('termsCheck').checked;
     
-    if (!u || !p || !c || !e) {
+    if (!u || !p || !c) {
         document.getElementById('regError').innerText = 'All fields required';
+        return;
+    }
+    if (u.length < 8) {
+        document.getElementById('regError').innerText = 'Username must be at least 8 characters';
+        return;
+    }
+    if (p.length < 8) {
+        document.getElementById('regError').innerText = 'Password must be at least 8 characters';
         return;
     }
     if (p !== c) {
