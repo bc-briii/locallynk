@@ -161,7 +161,7 @@ function stopLocationTracking() {
 
 function startNearbyRefresh() {
     if (nearbyRefreshInterval !== null) return;
-    nearbyRefreshInterval = setInterval(findNearbyUsers, 5000);
+    nearbyRefreshInterval = setInterval(() => findNearbyUsers(false), 5000);
 }
 
 function stopNearbyRefresh() {
@@ -473,17 +473,17 @@ function showProfileCard(user) {
     overlay.onclick = close;
 }
 
-async function findNearbyUsers() {
+async function findNearbyUsers(showNotifications = true) {
     if (!currentUser) {
-        showToast('Please log in first');
+        if (showNotifications) showToast('Please log in first');
         return;
     }
 
-    showToast('Getting your location...');
+    if (showNotifications) showToast('Getting your location...');
     const location = await getUserLocation();
     if (!location) return;
 
-    showToast('Finding nearby users...');
+    if (showNotifications) showToast('Finding nearby users...');
 
     try {
         const result = await apiCall('nearbyUsers', {
@@ -496,7 +496,7 @@ async function findNearbyUsers() {
 
         if (!result.success) {
             console.error('API call failed:', result);
-            showToast('Failed to find nearby users: ' + (result.error || 'Unknown error'));
+            if (showNotifications) showToast('Failed to find nearby users: ' + (result.error || 'Unknown error'));
             return;
         }
 
@@ -506,7 +506,7 @@ async function findNearbyUsers() {
 
         if (nearbyUsers.length === 0) {
             container.innerHTML = '<div style="color:#94a3b8; position:absolute; top:45%; left:35%; background:#0f172a; padding:8px 20px; border-radius:30px; text-align:center;">No users nearby<br><small>(within 20 meters)</small></div>';
-            showToast('No users found within 20 meters');
+            if (showNotifications) showToast('No users found within 20 meters');
             return;
         }
 
@@ -526,7 +526,7 @@ async function findNearbyUsers() {
             wrapper.appendChild(card);
             container.appendChild(wrapper);
         });
-        showToast(`${nearbyUsers.length} user(s) within 10 meters. Click to view profile.`);
+        if (showNotifications) showToast(`${nearbyUsers.length} user(s) within 10 meters. Click to view profile.`);
 
     } catch (error) {
         console.error('Find nearby users error:', error);
@@ -742,7 +742,7 @@ function goToMain() {
     checkIncomingRings();
     
     document.getElementById('findBtn').onclick = () => {
-        findNearbyUsers();
+        findNearbyUsers(true);
         startNearbyRefresh();
     };
     document.getElementById('logoutBtn').onclick = () => { currentUser = null; clearUserSession(); stopLocationTracking(); stopNearbyRefresh(); location.reload(); };
