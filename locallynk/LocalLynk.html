@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>LocalLynk · Connect Beyond Comfort</title>
+    <style>
+        :root {
+            /* Blue and Orange Theme */
+            --primary-dark-blue: #1e3c72;
+            --primary-medium-blue: #2a5298;
+            --primary-light-blue: #4a90e2;
+            --accent-orange: #ff8c42;
+            --accent-orange-dark: #e67e2d;
+            --text-primary: #1e3c72;
+            --text-secondary: #4b5563;
+            --bg-light: #f0f4ff;
+            --bg-light-border: #e0e8ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-medium-blue) 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            background: #ffffff;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .page {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        /* ===== OPENING PAGE ===== */
+        #openingPage {
+            position: relative;
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--accent-orange) 100%);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .opening-background {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 60%, rgba(255, 140, 66, 0.4), transparent),
+                        radial-gradient(circle at 30, 60, 114, 0.3), transparent);
+        }
+
+        .opening-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .app-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 4px 12px rgba(255, 140, 66, 0.5);
+        }
+
+        /* ===== AUTH PAGES ===== */
+        .auth-container {
+            background: #ffffff;
+            margin: auto;
+            width: 100%;
+            max-width: 90%;
+            padding: 2rem 1.5rem;
+            border-radius: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .auth-title {
+            color: var(--primary-dark-blue);
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 0.8rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 15px;
+            background: #f0f4ff;
+            border: 2px solid #e0e8ff;
+            border-radius: 0.8rem;
+            font-size: 0.95rem;
+            color: var(--primary-dark-blue);
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary-dark-blue);
+        }
+
+        .input-field::placeholder {
+            color: #94a3b8;
+        }
+
+        .input-field textarea {
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 1rem 0;
+            color: var(--primary-dark-blue);
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-orange);
+        }
+
+        .checkbox-group label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .terms-link {
+            color: var(--accent-orange);
+            font-weight: 600;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .terms-link:hover {
+            color: var(--accent-orange-dark);
+        }
+
+        .signup-link-container {
+            text-align: center;
+            color: var(--primary-dark-blue);
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+
+        .signup-link {
+            color: var(--accent-orange);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .signup-link:hover {
+            color: var(--accent-orange-dark);
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            border: none;
+            padding: 12px 16px;
+            border-radius: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-dark-blue), var(--accent-orange));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(255, 140, 66, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-dark-blue);
+            color: var(--primary-dark-blue);
+            margin-top: 0.5rem;
+        }
+
+        .btn-outline:hover {
+            background: #f0f4ff;
+        }
+
+        .btn-secondary {
+            background: #e0e8ff;
+            color: var(--primary-dark-blue);
+            border: 2px solid #d0deff;
+        }
+
+        .btn-secondary:hover {
+            background: #d0deff;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .button-group .btn {
+            width: 100%;
+        }
+
+        /* ===== MAIN PAGE (DASHBOARD) ===== */
+        .main-layout {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-medium-blue) 50%, var(--accent-orange) 100%);
+            overflow: hidden;
+        }
+
+        .top-left-profile {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+        }
+
+        .profile-circle-clickable {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            cursor: pointer;
+            transition: transform 0.3s;
+            object-fit: cover;
+        }
+
+        .profile-circle-clickable:hover {
+            transform: scale(1.1);
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid var(--accent-orange);
+            color: var(--primary-dark-blue);
+            padding: 8px 16px;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: var(--accent-orange);
+            color: white;
+        }
+
+        /* ===== RADAR ===== */
+        .radar-container {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            height: 250px;
+            z-index: 10;
+        }
+
+        #radarCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .radar-center-dot {
+            display: none;
+            z-index: 15;
+            box-shadow: 0 0 20px rgba(255, 140, 66, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .users-on-radar {
+            position: absolute;
+            inset: 0;
+        }
+
+        .radar-user {
+            position: absolute;
+            width: 60px;
+            height: auto;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radar-user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 15px rgba(255, 140, 66, 0.8);
+            overflow: hidden;
+        }
+
+        .radar-user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .radar-user-distance {
+            color: var(--accent-orange);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            text-shadow: 0 0 8px rgba(0,0,0,0.5);
+        }
+
+        .radar-user:hover .radar-user-avatar {
+            transform: scale(1.1);
+        }
+
+        /* ===== VIEW ALL BUTTON ===== */
+        .view-all-btn {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            z-index: 20;
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 0 50px 50px 0;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+        }
+
+        .view-all-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 16px rgba(255, 107, 53, 0.6);
+        }
+
+        .quick-access {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .quick-btn {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--primary-dark-blue);
+            border: 2px solid var(--accent-orange);
+            padding: 10px 15px;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+
+        .quick-btn:hover {
+            background: var(--accent-orange);
+            color: white;
+        }
+
+        /* ===== PROFILE PAGE ===== */
+        .profile-page-container {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-medium-blue) 50%);
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            color: var(--primary-dark-blue);
+            padding: 10px 16px;
+            border-radius: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            align-self: flex-start;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1.5rem;
+            padding: 2rem 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .profile-image-wrapper {
+            position: relative;
+        }
+
+        .large-profile-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--accent-orange);
+            cursor: pointer;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .large-profile-circle:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark-blue);
+            text-align: center;
+        }
+
+        .profile-info-box {
+            width: 100%;
+            background: var(--bg-light);
+            border: 2px solid var(--bg-light-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #e0e8ff;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            color: var(--primary-dark-blue);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .ring-count {
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .ring-badge {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .ring-label {
+            color: var(--primary-dark-blue);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .action-btn {
+            flex: 1;
+            min-width: 120px;
+            background: linear-gradient(135deg, var(--primary-dark-blue), var(--accent-orange));
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 140, 66, 0.4);
+        }
+
+        /* ===== EDIT PROFILE PAGE ===== */
+        #editProfilePage {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-medium-blue) 50%);
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        .profile-photo-label {
+            display: block;
+            color: var(--primary-dark-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .image-preview-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--accent-orange);
+            background: #f0f4ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .image-preview-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        /* ===== VIEW ALL PAGE ===== */
+        .view-all-container {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-medium-blue) 50%);
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .view-all-container h2 {
+            color: #ffffff;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .user-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-item:hover {
+            background: #ffffff;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ff8c42;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: var(--primary-dark-blue);
+            margin-bottom: 0.3rem;
+        }
+
+        .user-distance {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        /* ===== INBOX PAGE ===== */
+        .inbox-container {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-medium-blue) 50%);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 20px 0 20px;
+            gap: 1rem;
+        }
+
+        .inbox-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #e0e8ff;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-orange);
+        }
+
+        .conversations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 5px;
+        }
+
+        .conversation-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .conversation-item:hover {
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .conversation-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-orange);
+        }
+
+        .conversation-info {
+            flex: 1;
+        }
+
+        .conversation-name {
+            font-weight: 700;
+            color: var(--primary-dark-blue);
+            margin-bottom: 0.2rem;
+        }
+
+        .conversation-preview {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        /* ===== MESSAGE PAGE ===== */
+        .message-container {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-medium-blue) 50%);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            gap: 0.5rem;
+        }
+
+        .message-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0.8rem;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .small-profile {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-orange);
+        }
+
+        #messageUserName {
+            flex: 1;
+            color: var(--primary-dark-blue);
+            font-weight: 700;
+        }
+
+        .ring-btn {
+            background: var(--accent-orange);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .ring-btn:hover {
+            background: var(--accent-orange-dark);
+            transform: scale(1.1);
+        }
+
+        .messages-display {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 0.8rem;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .message-line {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .message-line.sent {
+            justify-content: flex-end;
+        }
+
+        .message-line.received {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+
+        .message-line.sent .message-bubble {
+            background: linear-gradient(135deg, var(--primary-dark-blue), var(--accent-orange));
+            color: white;
+            border-bottom-right-radius: 0.2rem;
+        }
+
+        .message-line.received .message-bubble {
+            background: #e0e8ff;
+            color: var(--primary-dark-blue);
+            border-bottom-left-radius: 0.2rem;
+        }
+
+        .message-status {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-align: right;
+            margin-top: 0.2rem;
+        }
+
+        .message-input-area {
+            display: flex;
+            gap: 0.8rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.8rem;
+            border-radius: 0.8rem;
+        }
+
+        .message-textarea {
+            flex: 1;
+            padding: 10px 12px;
+            background: #f0f4ff;
+            border: 2px solid #e0e8ff;
+            border-radius: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--primary-dark-blue);
+            outline: none;
+            resize: none;
+            max-height: 80px;
+            font-family: inherit;
+        }
+
+        .message-textarea:focus {
+            border-color: var(--accent-orange);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--primary-dark-blue), var(--accent-orange));
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 140, 66, 0.3);
+        }
+
+        /* ===== SCROLLBAR STYLING ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-orange);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-orange-dark);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .app-wrapper {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .auth-container {
+                padding: 1.5rem 1rem;
+            }
+
+            .app-title {
+                font-size: 2.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-wrapper" id="app">
+
+    <!-- OPENING PAGE -->
+    <div id="openingPage" class="page active">
+        <div class="opening-background"></div>
+        <div class="opening-content">
+            <h1 class="app-title">LocalLynk</h1>
+            <button class="btn btn-primary" id="getStartedBtn">Get Started</button>
+        </div>
+    </div>
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="page">
+        <div class="auth-container">
+            <h2 class="auth-title">LocalLynk</h2>
+            <div class="input-group">
+                <input type="text" id="loginUsername" placeholder="Username" class="input-field">
+            </div>
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Password" class="input-field">
+            </div>
+            <button class="btn btn-primary" id="loginBtn">Sign In</button>
+            <div class="signup-link-container">
+                <span>New here? </span>
+                <span class="signup-link" id="gotoRegisterBtn">Sign Up</span>
+            </div>
+            <div id="loginError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- REGISTER PAGE 1 (ACCOUNT CREATION) -->
+    <div id="registerPage" class="page">
+        <div class="auth-container">
+            <h2 class="auth-title">Create Account</h2>
+            <div class="input-group">
+                <input type="text" id="regUser" placeholder="Username" class="input-field">
+            </div>
+            <div class="input-group">
+                <input type="password" id="regPass" placeholder="Password" class="input-field">
+            </div>
+            <div class="input-group">
+                <input type="password" id="regConfirm" placeholder="Confirm Password" class="input-field">
+            </div>
+            <div class="input-group">
+                <input type="email" id="regEmail" placeholder="Email" class="input-field">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="termsCheck">
+                <label for="termsCheck">I agree to the <span class="terms-link" id="termsLink">Terms & Agreements</span></label>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" id="registerNextBtn">Next</button>
+                <button class="btn btn-outline" id="backToLoginBtn">Go Back</button>
+            </div>
+            <div id="regError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- REGISTER PAGE 2 (PROFILE COMPLETION) -->
+    <div id="profileCompletionPage" class="page">
+        <div class="auth-container">
+            <h2 class="auth-title">Complete Your Profile</h2>
+            <div class="input-group">
+                <input type="text" id="profileName" placeholder="Full Name" class="input-field">
+            </div>
+            <div class="input-group">
+                <input type="number" id="profileAge" placeholder="Age" class="input-field">
+            </div>
+            <div class="input-group">
+                <input type="text" id="profileHobbies" placeholder="Hobbies" class="input-field">
+            </div>
+            <div class="input-group">
+                <textarea id="profileBio" rows="2" placeholder="Short bio" class="input-field"></textarea>
+            </div>
+            <div class="input-group">
+                <label class="profile-photo-label">Profile Picture</label>
+                <input type="file" id="profilePictureFile" accept="image/*" style="display:none;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('profilePictureFile').click()">Choose Photo</button>
+                <div id="profileImagePreview" class="image-preview-circle">
+                    <span>No photo</span>
+                </div>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="termsCheck2">
+                <label for="termsCheck2">I agree to the <span class="terms-link" id="termsLink2">Terms & Agreements</span></label>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" id="completeProfileBtn">Proceed</button>
+                <button class="btn btn-outline" id="backToAccountBtn">Go Back</button>
+            </div>
+            <div id="profileError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- MAIN PAGE (DASHBOARD WITH RADAR) -->
+    <div id="mainPage" class="page">
+        <div class="main-layout">
+            <div class="top-left-profile">
+                <img id="topLeftProfileImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" class="profile-circle-clickable">
+            </div>
+            <button id="logoutBtn" class="logout-btn">Log out</button>
+            <div class="radar-container">
+                <canvas id="radarCanvas"></canvas>
+                <div class="radar-center-dot"></div>
+                <div class="users-on-radar" id="usersOnRadar"></div>
+            </div>
+            <button class="view-all-btn" id="viewAllBtn">View All</button>
+            <div class="quick-access">
+                <button class="quick-btn" id="inboxQuickBtn">📬 Inbox</button>
+                <button class="quick-btn" id="editProfileQuickBtn">✏️ Edit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER PROFILE PAGE (OWN PROFILE) -->
+    <div id="userProfilePage" class="page">
+        <div class="profile-page-container">
+            <button class="back-btn" id="backFromUserProfileBtn">← Back</button>
+            <div class="profile-section">
+                <div class="profile-image-wrapper">
+                    <img id="userProfileImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" class="large-profile-circle">
+                </div>
+                <div class="profile-name" id="userProfileName">User</div>
+                <div class="profile-info-box">
+                    <div class="info-item">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value" id="profileInfoName">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Age</span>
+                        <span class="info-value" id="profileInfoAge">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Hobbies</span>
+                        <span class="info-value" id="profileInfoHobbies">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Bio</span>
+                        <span class="info-value" id="profileInfoBio">—</span>
+                    </div>
+                    <div class="info-item ring-count">
+                        <span class="ring-badge" id="userRingCount">67</span>
+                        <span class="ring-label">Rings</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="action-btn" id="userInboxBtn">📬 Inbox</button>
+                    <button class="action-btn" id="userEditBtn">✏️ Edit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTHER USER PROFILE PAGE -->
+    <div id="otherUserProfilePage" class="page">
+        <div class="profile-page-container">
+            <button class="back-btn" id="backFromOtherProfileBtn">← Back</button>
+            <div class="profile-section">
+                <div class="profile-image-wrapper">
+                    <img id="otherUserProfileImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" class="large-profile-circle">
+                </div>
+                <div class="profile-name" id="otherUserProfileName">User</div>
+                <div class="profile-info-box">
+                    <div class="info-item">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value" id="profileInfoName2">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Age</span>
+                        <span class="info-value" id="profileInfoAge2">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Hobbies</span>
+                        <span class="info-value" id="profileInfoHobbies2">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Bio</span>
+                        <span class="info-value" id="profileInfoBio2">—</span>
+                    </div>
+                    <div class="info-item ring-count">
+                        <span class="ring-badge" id="otherUserRingCount">—</span>
+                        <span class="ring-label">Rings</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="action-btn" id="otherRingBtn">📞 Ring</button>
+                    <button class="action-btn" id="otherMessageBtn">💬 Message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT PROFILE PAGE -->
+    <div id="editProfilePage" class="page">
+        <div class="auth-container">
+            <h2 class="auth-title">Edit Profile</h2>
+            <div class="input-group">
+                <input type="text" id="editProfileName" placeholder="Full Name" class="input-field">
+            </div>
+            <div class="input-group">
+                <input type="number" id="editProfileAge" placeholder="Age" class="input-field">
+            </div>
+            <div class="input-group">
+                <input type="text" id="editProfileHobbies" placeholder="Hobbies" class="input-field">
+            </div>
+            <div class="input-group">
+                <textarea id="editProfileBio" rows="2" placeholder="Short bio" class="input-field"></textarea>
+            </div>
+            <div class="input-group">
+                <label class="profile-photo-label">Profile Picture</label>
+                <input type="file" id="editProfilePictureFile" accept="image/*" style="display:none;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('editProfilePictureFile').click()">Choose Photo</button>
+                <div id="editProfileImagePreview" class="image-preview-circle">
+                    <span>No photo</span>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" id="saveProfileBtn">Save</button>
+                <button class="btn btn-outline" id="backFromEditBtn">Go Back</button>
+            </div>
+            <div id="editProfileError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- VIEW ALL NEARBY USERS PAGE -->
+    <div id="viewAllPage" class="page">
+        <div class="view-all-container">
+            <button class="back-btn" id="backFromViewAllBtn">← Back</button>
+            <h2>Nearby Users</h2>
+            <div class="users-list" id="usersList"></div>
+        </div>
+    </div>
+
+    <!-- INBOX PAGE -->
+    <div id="inboxPage" class="page">
+        <div class="inbox-container">
+            <div class="inbox-header">
+                <button class="back-btn" id="backFromInboxBtn">← Back</button>
+                <input type="text" id="inboxSearchInput" placeholder="Search..." class="search-input">
+            </div>
+            <div class="conversations-list" id="conversationsList"></div>
+        </div>
+    </div>
+
+    <!-- MESSAGE PAGE -->
+    <div id="messagePage" class="page">
+        <div class="message-container">
+            <div class="message-header">
+                <button class="back-btn" id="backFromMessageBtn">← Back</button>
+                <img id="messageUserImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="User" class="small-profile">
+                <span id="messageUserName">User</span>
+                <button class="ring-btn" id="messageRingBtn">📞</button>
+            </div>
+            <div class="messages-display" id="messagesDisplay"></div>
+            <div class="message-input-area">
+                <textarea id="messageInput" placeholder="Type a message..." class="message-textarea"></textarea>
+                <button class="send-btn" id="sendMessageBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ============ STATE MANAGEMENT ============
+let currentUser = null;
+let currentPage = 'openingPage';
+let tempAccountData = {};
+let selectedOtherUser = null;
+let currentMessageUser = null;
+let usersDB = [];
+let messagesDB = {};
+let userLocation = null;
+let radarUpdateInterval = null;
+
+const API_BASE_URL = 'https://locallynk-api.onrender.com';
+
+// ============ LOCALSTORAGE HELPERS ============
+function saveUserSession() {
+    if (!currentUser) return;
+    localStorage.setItem('locallynk_session', JSON.stringify(currentUser));
+}
+
+async function restoreUserSession() {
+    try {
+        // Check if user has a valid backend session
+        const response = await fetch(`${API_BASE_URL}/api/currentUser`, {
+            credentials: 'include'
+        });
+        const result = await response.json();
+        
+        // If backend confirms session is valid, restore from localStorage
+        if (result.success && result.userId) {
+            const savedUserData = localStorage.getItem('locallynk_session');
+            if (savedUserData) {
+                try {
+                    currentUser = JSON.parse(savedUserData);
+                    return true;
+                } catch (error) {
+                    console.error('Failed to parse saved session:', error);
+                    return false;
+                }
+            }
+            return true; // Backend session valid even if localStorage is empty
+        }
+        return false; // No valid backend session
+    } catch (error) {
+        console.error('Session check failed:', error);
+        
+        // Fallback: try to restore from localStorage
+        const savedUserData = localStorage.getItem('locallynk_session');
+        if (savedUserData) {
+            try {
+                currentUser = JSON.parse(savedUserData);
+                return true;
+            } catch (error) {
+                console.error('Failed to parse fallback session:', error);
+                return false;
+            }
+        }
+        return false;
+    }
+}
+
+function clearUserSession() {
+    localStorage.removeItem('locallynk_session');
+}
+
+function loadAllData() {
+    const usersData = localStorage.getItem('locallynk_users');
+    const messagesData = localStorage.getItem('locallynk_messages');
+    if (usersData) usersDB = JSON.parse(usersData);
+    if (messagesData) messagesDB = JSON.parse(messagesData);
+}
+
+function saveAllData() {
+    localStorage.setItem('locallynk_users', JSON.stringify(usersDB));
+    localStorage.setItem('locallynk_messages', JSON.stringify(messagesDB));
+}
+
+// ============ IMAGE HANDLING ============
+function handleProfilePictureUpload(fileInputId, previewId) {
+    const fileInput = document.getElementById(fileInputId);
+    const preview = document.getElementById(previewId);
+    
+    if (!fileInput) return;
+    
+    fileInput.addEventListener('change', async (event) => {
+        const selectedFile = event.target.files[0];
+        if (!selectedFile || !selectedFile.type.startsWith('image/')) return;
+        
+        // Show preview immediately
+        displayImagePreview(selectedFile, preview);
+        
+        // Upload to server in background
+        uploadImageToServer(selectedFile, preview);
+    });
+}
+
+function displayImagePreview(file, previewElement) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const imageData = event.target.result;
+        previewElement.innerHTML = `<img src="${imageData}" style="width:100%; height:100%; object-fit:cover;">`;
+        previewElement.dataset.imageData = imageData;
+    };
+    reader.readAsDataURL(file);
+}
+
+async function uploadImageToServer(file, previewElement) {
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await fetch(`${API_BASE_URL}/api/uploadImage`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+        
+        const result = await response.json();
+        if (result.success && result.imageUrl) {
+            previewElement.dataset.uploadedUrl = result.imageUrl;
+        } else {
+            console.error('Image upload failed:', result.error);
+        }
+    } catch (error) {
+        console.error('Error uploading image to server:', error);
+    }
+}
+
+// Initialize image handlers
+handleProfilePictureUpload('profilePictureFile', 'profileImagePreview');
+handleProfilePictureUpload('editProfilePictureFile', 'editProfileImagePreview');
+
+// ============ PAGE NAVIGATION ============
+function goToPage(pageId) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    
+    // Show the requested page
+    const pageElement = document.getElementById(pageId);
+    if (!pageElement) return;
+    
+    pageElement.classList.add('active');
+    currentPage = pageId;
+    
+    // Remember page for user's next visit
+    if (currentUser) {
+        localStorage.setItem('locallynk_currentPage', pageId);
+    }
+    
+    // Handle radar auto-update on main page
+    handleRadarUpdates(pageId);
+}
+
+function handleRadarUpdates(pageId) {
+    // Stop any existing radar updates
+    if (radarUpdateInterval) {
+        clearInterval(radarUpdateInterval);
+        radarUpdateInterval = null;
+    }
+    
+    // Start radar updates when entering main page
+    if (pageId === 'mainPage') {
+        updateMainPage(); // Initial update
+        radarUpdateInterval = setInterval(() => {
+            if (currentPage === 'mainPage') {
+                updateRadar(); // Refresh every 5 seconds
+            }
+        }, 5000);
+    }
+}
+
+// ============ AUTH HANDLERS ============
+document.getElementById('getStartedBtn').onclick = () => goToPage('loginPage');
+document.getElementById('gotoRegisterBtn').onclick = () => goToPage('registerPage');
+document.getElementById('backToLoginBtn').onclick = () => goToPage('loginPage');
+document.getElementById('backToAccountBtn').onclick = () => goToPage('registerPage');
+
+document.getElementById('registerNextBtn').onclick = async function() {
+    // Get form values
+    const username = document.getElementById('regUser').value.trim();
+    const password = document.getElementById('regPass').value.trim();
+    const passwordConfirm = document.getElementById('regConfirm').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const agreedToTerms = document.getElementById('termsCheck').checked;
+    const errorElement = document.getElementById('regError');
+    
+    // Validate inputs
+    if (!username || !password || !passwordConfirm || !email) {
+        errorElement.innerText = 'All fields required';
+        return;
+    }
+    if (username.length < 8) {
+        errorElement.innerText = 'Username must be at least 8 characters';
+        return;
+    }
+    if (password.length < 8) {
+        errorElement.innerText = 'Password must be at least 8 characters';
+        return;
+    }
+    if (password !== passwordConfirm) {
+        errorElement.innerText = 'Passwords do not match';
+        return;
+    }
+    if (!agreedToTerms) {
+        errorElement.innerText = 'You must agree to Terms';
+        return;
+    }
+
+    // Save data temporarily and proceed
+    tempAccountData = { username, password, email };
+    errorElement.innerText = '';
+    goToPage('profileCompletionPage');
+};
+
+document.getElementById('loginBtn').onclick = async function() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const errorElement = document.getElementById('loginError');
+
+    if (!username || !password) {
+        errorElement.innerText = 'Username and password required';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ username, password })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            currentUser = result.user;
+            saveUserSession();
+            goToPage('mainPage');
+            updateMainPage();
+        } else {
+            errorElement.innerText = result.error || 'Invalid credentials';
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        errorElement.innerText = 'Connection error. Please try again.';
+    }
+};
+
+document.getElementById('completeProfileBtn').onclick = async function() {
+    const profileName = document.getElementById('profileName').value.trim();
+    const profileAge = parseInt(document.getElementById('profileAge').value);
+    const profileHobbies = document.getElementById('profileHobbies').value.trim();
+    const profileBio = document.getElementById('profileBio').value.trim();
+    const agreedToTerms = document.getElementById('termsCheck2').checked;
+    const errorElement = document.getElementById('profileError');
+
+    // Validate input
+    if (!profileName || !profileAge || !profileHobbies) {
+        errorElement.innerText = 'All fields required';
+        return;
+    }
+    if (!agreedToTerms) {
+        errorElement.innerText = 'You must agree to Terms';
+        return;
+    }
+
+    try {
+        // Step 1: Register the account
+        const accountCreated = await registerNewAccount(errorElement);
+        if (!accountCreated) return;
+
+        // Step 2: Update the profile
+        const profileData = {
+            name: profileName,
+            age: profileAge,
+            hobbies: profileHobbies,
+            bio: profileBio,
+            picture: getSelectedImageUrl()
+        };
+        await updateUserProfile(profileData, errorElement);
+        
+        // Step 3: Clear form and proceed
+        clearProfileForm();
+        tempAccountData = {};
+        errorElement.innerText = '';
+        
+        updateMainPage();
+        goToPage('mainPage');
+    } catch (error) {
+        console.error('Profile completion error:', error);
+        errorElement.innerText = 'Connection error. Please try again.';
+    }
+};
+
+async function registerNewAccount(errorElement) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                username: tempAccountData.username,
+                password: tempAccountData.password,
+                email: tempAccountData.email
+            })
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+            errorElement.innerText = result.error || 'Registration failed';
+            return false;
+        }
+
+        currentUser = result.user;
+        saveUserSession();
+        return true;
+    } catch (error) {
+        console.error('Registration error:', error);
+        errorElement.innerText = 'Failed to create account';
+        return false;
+    }
+}
+
+async function updateUserProfile(profileData, errorElement) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/updateProfile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ profile: profileData })
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+            errorElement.innerText = 'Profile update failed';
+            return false;
+        }
+
+        // Update current user with profile data
+        if (result.user) {
+            currentUser.profile = result.user.profile;
+        } else {
+            currentUser.profile = profileData;
+        }
+        saveUserSession();
+        return true;
+    } catch (error) {
+        console.error('Profile update error:', error);
+        errorElement.innerText = 'Failed to update profile';
+        return false;
+    }
+}
+
+function getSelectedImageUrl() {
+    const preview = document.getElementById('profileImagePreview');
+    return preview.dataset.uploadedUrl || preview.dataset.imageData || null;
+}
+
+function clearProfileForm() {
+    document.getElementById('profileName').value = '';
+    document.getElementById('profileAge').value = '';
+    document.getElementById('profileHobbies').value = '';
+    document.getElementById('profileBio').value = '';
+    document.getElementById('profileImagePreview').innerHTML = '<span>No photo</span>';
+    delete document.getElementById('profileImagePreview').dataset.imageData;
+}
+    
+;
+
+document.getElementById('logoutBtn').onclick = async () => {
+    try {
+        await fetch(`${API_BASE_URL}/api/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.log('Logout error:', error);
+    }
+
+    currentUser = null;
+    clearUserSession();
+    localStorage.removeItem('locallynk_currentPage');
+    if (radarUpdateInterval) {
+        clearInterval(radarUpdateInterval);
+        radarUpdateInterval = null;
+    }
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').innerText = '';
+    goToPage('openingPage');
+};
+
+// ============ MAIN PAGE ============
+function updateMainPage() {
+    if (!currentUser) return;
+
+    const img = document.getElementById('topLeftProfileImg');
+    if (currentUser.profile?.picture) {
+        img.src = currentUser.profile.picture;
+    }
+
+    updateRadar();
+}
+
+// Calculate distance between two coordinates in meters using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+// Calculate bearing between two coordinates in degrees
+function calculateBearing(lat1, lon1, lat2, lon2) {
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const lat1Rad = lat1 * Math.PI / 180;
+    const lat2Rad = lat2 * Math.PI / 180;
+    const y = Math.sin(dLon) * Math.cos(lat2Rad);
+    const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+    let bearing = Math.atan2(y, x) * 180 / Math.PI;
+    return (bearing + 360) % 360;
+}
+
+async function updateRadar() {
+    const canvas = document.getElementById('radarCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const maxRadius = canvas.height / 2;
+
+    // Draw gradient background for radar (top-left facing from right edge)
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, 'rgba(255, 140, 66, 0.1)');
+    gradient.addColorStop(1, 'rgba(255, 140, 66, 0.05)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, maxRadius, -Math.PI / 2, Math.PI / 2);
+    ctx.lineTo(centerX, centerY);
+    ctx.fill();
+
+    // Draw concentric circles
+    ctx.strokeStyle = 'rgba(255, 140, 66, 0.25)';
+    ctx.lineWidth = 2;
+    for (let i = 1; i <= 3; i++) {
+        const r = (maxRadius / 3) * i;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, r, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+    }
+
+    // Draw radial grid lines
+    ctx.strokeStyle = 'rgba(255, 140, 66, 0.15)';
+    ctx.lineWidth = 1;
+    for (let angle = -Math.PI / 2; angle <= Math.PI / 2; angle += Math.PI / 6) {
+        const x = centerX + Math.cos(angle) * maxRadius;
+        const y = centerY + Math.sin(angle) * maxRadius;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+    }
+
+    // Update center dot styling (hidden)
+    const centerDot = document.querySelector('.radar-center-dot');
+    if (centerDot) {
+        centerDot.style.display = 'none';
+    }
+
+    // Show nearby users on radar from API (within 20m only)
+    const radarContainer = document.getElementById('usersOnRadar');
+    radarContainer.innerHTML = '';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/nearbyUsers`, {
+            credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success && result.users && result.users.length > 0) {
+            // Filter users within 20 meters
+            const usersWithin20m = result.users.filter(user => {
+                if (!user.location || !currentUser.location) return false;
+                const dist = calculateDistance(currentUser.location.lat, currentUser.location.lng, user.location.lat, user.location.lng);
+                return dist <= 20;
+            });
+
+            usersWithin20m.forEach((user, index) => {
+                // Calculate bearing for vertical semi-circle radar on right edge
+                const bearing = calculateBearing(currentUser.location.lat, currentUser.location.lng, user.location.lat, user.location.lng);
+                const distance = calculateDistance(currentUser.location.lat, currentUser.location.lng, user.location.lat, user.location.lng);
+                
+                // Convert bearing to canvas angle: bearing 0°=north maps to top of semi-circle
+                const angle = (bearing - 90) * Math.PI / 180;
+                
+                // Map distance to radius (max 20m = max radius)
+                const radarDistance = (distance / 20) * maxRadius;
+                
+                const x = centerX + Math.cos(angle) * radarDistance;
+                const y = centerY + Math.sin(angle) * radarDistance;
+                const distanceM = Math.floor(distance);
+
+                const userEl = document.createElement('div');
+                userEl.className = 'radar-user';
+                userEl.style.left = (x / canvas.offsetWidth * 100) + '%';
+                userEl.style.top = (y / canvas.offsetHeight * 100) + '%';
+                userEl.style.transform = 'translate(-50%, -50%)';
+                
+                const profilePic = user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                userEl.innerHTML = `
+                    <div class="radar-user-avatar">
+                        <img src="${profilePic}" alt="${user.username}">
+                    </div>
+                    <div class="radar-user-distance">${distanceM}m</div>
+                `;
+                userEl.onclick = () => viewOtherUserProfile(user);
+                radarContainer.appendChild(userEl);
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching nearby users:', error);
+    }
+}
+
+document.getElementById('topLeftProfileImg').onclick = () => viewUserProfile();
+document.getElementById('viewAllBtn').onclick = () => {
+    updateViewAllPage();
+    goToPage('viewAllPage');
+};
+document.getElementById('inboxQuickBtn').onclick = () => {
+    updateInboxPage();
+    goToPage('inboxPage');
+};
+document.getElementById('editProfileQuickBtn').onclick = () => {
+    loadEditProfileForm();
+    goToPage('editProfilePage');
+};
+
+// ============ USER PROFILE PAGE ============
+function viewUserProfile() {
+    if (!currentUser) return;
+
+    const profile = currentUser.profile || {};
+    const defaultProfileImage = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    
+    // Get values with fallbacks
+    const profileName = profile.name || currentUser.username;
+    const profileAge = profile.age ? `${profile.age} years` : '—';
+    const ringCount = currentUser.rings || '0';
+    
+    // Update UI
+    document.getElementById('userProfileImg').src = profile.picture || defaultProfileImage;
+    document.getElementById('userProfileName').innerText = profileName;
+    document.getElementById('profileInfoName').innerText = profile.name || '—';
+    document.getElementById('profileInfoAge').innerText = profileAge;
+    document.getElementById('profileInfoHobbies').innerText = profile.hobbies || '—';
+    document.getElementById('profileInfoBio').innerText = profile.bio || '—';
+    document.getElementById('userRingCount').innerText = ringCount;
+
+    goToPage('userProfilePage');
+}
+
+document.getElementById('backFromUserProfileBtn').onclick = () => goToPage('mainPage');
+document.getElementById('userInboxBtn').onclick = () => {
+    updateInboxPage();
+    goToPage('inboxPage');
+};
+document.getElementById('userEditBtn').onclick = () => {
+    loadEditProfileForm();
+    goToPage('editProfilePage');
+};
+
+document.getElementById('userProfileImg').onclick = () => {
+    const imageSrc = document.getElementById('userProfileImg').src;
+    showFullscreenImageModal(imageSrc);
+};
+
+function showFullscreenImageModal(imageSrc) {
+    // Create modal background
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    `;
+    
+    // Add image
+    modal.innerHTML = `<img src="${imageSrc}" style="max-width:90%; max-height:90%; border-radius:1rem;">`;
+    
+    // Close when clicked
+    modal.onclick = () => modal.remove();
+    
+    // Show modal
+    document.body.appendChild(modal);
+}
+
+// ============ OTHER USER PROFILE PAGE ============
+function viewOtherUserProfile(user) {
+    selectedOtherUser = user;
+    const profile = user.profile || {};
+    const defaultProfileImage = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    
+    // Get values with fallbacks
+    const profileName = profile.name || user.username;
+    const profileAge = profile.age ? `${profile.age} years` : '—';
+    const ringCount = user.rings || '0';
+    
+    // Update UI
+    document.getElementById('otherUserProfileImg').src = profile.picture || defaultProfileImage;
+    document.getElementById('otherUserProfileName').innerText = profileName;
+    document.getElementById('profileInfoName2').innerText = profile.name || '—';
+    document.getElementById('profileInfoAge2').innerText = profileAge;
+    document.getElementById('profileInfoHobbies2').innerText = profile.hobbies || '—';
+    document.getElementById('profileInfoBio2').innerText = profile.bio || '—';
+    document.getElementById('otherUserRingCount').innerText = ringCount;
+    
+    goToPage('otherUserProfilePage');
+}
+
+document.getElementById('backFromOtherProfileBtn').onclick = () => goToPage('mainPage');
+document.getElementById('otherRingBtn').onclick = () => {
+    if (selectedOtherUser && currentUser) {
+        if (!currentUser.ringsGiven) currentUser.ringsGiven = [];
+        currentUser.ringsGiven.push({ to: selectedOtherUser.username, time: new Date().toLocaleString() });
+        selectedOtherUser.rings = (selectedOtherUser.rings || 0) + 1;
+        saveAllData();
+        saveUserSession();
+        alert(`You rung ${selectedOtherUser.profile?.name || selectedOtherUser.username}!`);
+    }
+};
+document.getElementById('otherMessageBtn').onclick = () => {
+    if (selectedOtherUser) {
+        currentMessageUser = selectedOtherUser;
+        updateMessagePage();
+        goToPage('messagePage');
+    }
+};
+
+// ============ EDIT PROFILE PAGE ============
+function loadEditProfileForm() {
+    if (!currentUser) return;
+    const p = currentUser.profile;
+    document.getElementById('editProfileName').value = p?.name || '';
+    document.getElementById('editProfileAge').value = p?.age || '';
+    document.getElementById('editProfileHobbies').value = p?.hobbies || '';
+    document.getElementById('editProfileBio').value = p?.bio || '';
+
+    const preview = document.getElementById('editProfileImagePreview');
+    if (p?.picture) {
+        preview.innerHTML = `<img src="${p.picture}" style="width:100%; height:100%; object-fit:cover;">`;
+        preview.dataset.imageData = p.picture;
+    }
+}
+
+document.getElementById('saveProfileBtn').onclick = async function() {
+    if (!currentUser) return;
+
+    const name = document.getElementById('editProfileName').value.trim();
+    const age = parseInt(document.getElementById('editProfileAge').value);
+    const hobbies = document.getElementById('editProfileHobbies').value.trim();
+    const bio = document.getElementById('editProfileBio').value.trim();
+
+    if (!name || !age || !hobbies) {
+        document.getElementById('editProfileError').innerText = 'All fields required';
+        return;
+    }
+
+    try {
+        const preview = document.getElementById('editProfileImagePreview');
+        const picture = preview?.dataset?.uploadedUrl || preview?.dataset?.imageData || currentUser.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+
+        const response = await fetch(`${API_BASE_URL}/api/updateProfile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                profile: { name, age, hobbies, bio, picture }
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            currentUser.profile = { name, age, hobbies, bio, picture };
+            saveUserSession();
+            goToPage('mainPage');
+            updateMainPage();
+        } else {
+            document.getElementById('editProfileError').innerText = result.error || 'Update failed';
+        }
+    } catch (error) {
+        console.error('Save profile error:', error);
+        document.getElementById('editProfileError').innerText = 'Connection error';
+    }
+};
+
+document.getElementById('backFromEditBtn').onclick = () => goToPage('mainPage');
+
+// ============ VIEW ALL PAGE ============
+async function updateViewAllPage() {
+    const list = document.getElementById('usersList');
+    list.innerHTML = '';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/nearbyUsers`, {
+            credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success && result.users && result.users.length > 0) {
+            // Filter and sort users within 20m
+            let nearbyUsers = result.users.filter(user => {
+                if (!user.location || !currentUser.location) return false;
+                const dist = calculateDistance(currentUser.location.lat, currentUser.location.lng, user.location.lat, user.location.lng);
+                return dist <= 20;
+            }).sort((a, b) => {
+                const distA = calculateDistance(currentUser.location.lat, currentUser.location.lng, a.location.lat, a.location.lng);
+                const distB = calculateDistance(currentUser.location.lat, currentUser.location.lng, b.location.lat, b.location.lng);
+                return distA - distB;
+            });
+
+            if (nearbyUsers.length === 0) {
+                list.innerHTML = '<div style="color: #ffffff; padding: 20px; text-align: center;">No users within 20m</div>';
+                return;
+            }
+
+            nearbyUsers.forEach(user => {
+                const dist = calculateDistance(currentUser.location.lat, currentUser.location.lng, user.location.lat, user.location.lng);
+                const distanceText = dist < 1000 ? `${Math.round(dist)}m away` : `${(dist / 1000).toFixed(1)}km away`;
+                
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <img src="${user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" class="user-avatar">
+                    <div class="user-info">
+                        <div class="user-name">${user.profile?.name || user.username}</div>
+                        <div class="user-distance">${distanceText}</div>
+                    </div>
+                `;
+                item.onclick = () => {
+                    viewOtherUserProfile(user);
+                    goToPage('otherUserProfilePage');
+                };
+                list.appendChild(item);
+            });
+        } else {
+            list.innerHTML = '<div style="color: #ffffff; padding: 20px; text-align: center;">No nearby users found</div>';
+        }
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        list.innerHTML = '<div style="color: #ffffff; padding: 20px; text-align: center;">Error loading users</div>';
+    }
+}
+
+document.getElementById('backFromViewAllBtn').onclick = () => goToPage('mainPage');
+
+// ============ INBOX PAGE ============
+function updateInboxPage() {
+    const list = document.getElementById('conversationsList');
+    list.innerHTML = '';
+
+    // Get all conversations for current user
+    const conversations = new Map();
+    Object.entries(messagesDB).forEach(([threadId, messages]) => {
+        if (threadId.includes(currentUser.username)) {
+            const otherUsername = threadId.replace(currentUser.username + '_', '').replace('_' + currentUser.username, '');
+            const otherUser = usersDB.find(u => u.username === otherUsername);
+            if (otherUser && messages.length > 0) {
+                conversations.set(otherUsername, { user: otherUser, messages });
+            }
+        }
+    });
+
+    conversations.forEach((data, username) => {
+        const item = document.createElement('div');
+        item.className = 'conversation-item';
+        const lastMsg = data.messages[data.messages.length - 1];
+        item.innerHTML = `
+            <img src="${data.user.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" class="conversation-avatar">
+            <div class="conversation-info">
+                <div class="conversation-name">${data.user.profile?.name || username}</div>
+                <div class="conversation-preview">${(lastMsg?.text || '').substring(0, 40)}</div>
+            </div>
+        `;
+        item.onclick = () => {
+            currentMessageUser = data.user;
+            updateMessagePage();
+            goToPage('messagePage');
+        };
+        list.appendChild(item);
+    });
+}
+
+document.getElementById('backFromInboxBtn').onclick = () => goToPage('mainPage');
+document.getElementById('inboxSearchInput').oninput = function() {
+    // Simple search filter
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        const name = item.querySelector('.conversation-name').innerText.toLowerCase();
+        item.style.display = name.includes(query) ? 'flex' : 'none';
+    });
+};
+
+// ============ MESSAGE PAGE ============
+function updateMessagePage() {
+    if (!currentMessageUser || !currentUser) return;
+
+    document.getElementById('messageUserImg').src = currentMessageUser.profile?.picture || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    document.getElementById('messageUserName').innerText = currentMessageUser.profile?.name || currentMessageUser.username;
+
+    const threadId = [currentUser.username, currentMessageUser.username].sort().join('_');
+    if (!messagesDB[threadId]) messagesDB[threadId] = [];
+
+    renderMessages(threadId);
+}
+
+function renderMessages(threadId) {
+    const display = document.getElementById('messagesDisplay');
+    display.innerHTML = '';
+
+    (messagesDB[threadId] || []).forEach(msg => {
+        const line = document.createElement('div');
+        line.className = `message-line ${msg.sender === currentUser.username ? 'sent' : 'received'}`;
+        line.innerHTML = `
+            <div class="message-bubble">${msg.text}</div>
+            ${msg.sender === currentUser.username ? '<div class="message-status">Delivered</div>' : ''}
+        `;
+        display.appendChild(line);
+    });
+
+    display.scrollTop = display.scrollHeight;
+}
+
+document.getElementById('sendMessageBtn').onclick = function() {
+    const text = document.getElementById('messageInput').value.trim();
+    if (!text || !currentMessageUser || !currentUser) return;
+
+    const threadId = [currentUser.username, currentMessageUser.username].sort().join('_');
+    if (!messagesDB[threadId]) messagesDB[threadId] = [];
+
+    messagesDB[threadId].push({
+        sender: currentUser.username,
+        text: text,
+        time: new Date().toLocaleString()
+    });
+
+    saveAllData();
+    document.getElementById('messageInput').value = '';
+    renderMessages(threadId);
+};
+
+document.getElementById('backFromMessageBtn').onclick = () => {
+    currentMessageUser = null;
+    goToPage('inboxPage');
+    updateInboxPage();
+};
+
+document.getElementById('messageRingBtn').onclick = () => {
+    if (currentMessageUser && currentUser) {
+        if (!currentUser.ringsGiven) currentUser.ringsGiven = [];
+        currentUser.ringsGiven.push({ to: currentMessageUser.username, time: new Date().toLocaleString() });
+        currentMessageUser.rings = (currentMessageUser.rings || 0) + 1;
+        saveAllData();
+        saveUserSession();
+        alert(`You rung ${currentMessageUser.profile?.name || currentMessageUser.username}!`);
+    }
+};
+
+// ============ INITIALIZATION ============
+window.addEventListener('DOMContentLoaded', function() {
+    loadAllData();
+    if (restoreUserSession()) {
+        // Restore the page user was on, or go to mainPage if not saved
+        const savedPage = localStorage.getItem('locallynk_currentPage');
+        const pageToRestore = (savedPage && savedPage !== 'openingPage') ? savedPage : 'mainPage';
+        goToPage(pageToRestore);
+        if (pageToRestore === 'mainPage') {
+            updateMainPage();
+        }
+    }
+});
+
+window.addEventListener('resize', () => {
+    if (currentPage === 'mainPage') updateRadar();
+});
+</script>
+</body>
+</html>
